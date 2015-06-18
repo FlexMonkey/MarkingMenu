@@ -13,6 +13,9 @@
 		3E628E671B248BDB00A9E560 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E628E661B248BDB00A9E560 /* Images.xcassets */; };
 		3E628E6A1B248BDB00A9E560 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3E628E681B248BDB00A9E560 /* LaunchScreen.xib */; };
 		3E628E761B248BDB00A9E560 /* MarkingMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E628E751B248BDB00A9E560 /* MarkingMenuTests.swift */; };
+		3E96459B1B329C5700522A38 /* FMMarkingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E96459A1B329C5700522A38 /* FMMarkingMenu.swift */; };
+		3E96459E1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E96459D1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift */; };
+		3E9645A01B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E96459F1B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +39,10 @@
 		3E628E6F1B248BDB00A9E560 /* MarkingMenuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MarkingMenuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E628E741B248BDB00A9E560 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3E628E751B248BDB00A9E560 /* MarkingMenuTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkingMenuTests.swift; sourceTree = "<group>"; };
+		3E96459A1B329C5700522A38 /* FMMarkingMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMMarkingMenu.swift; sourceTree = "<group>"; };
+		3E96459C1B329FB300522A38 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
+		3E96459D1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMMarkingMenuContentViewController.swift; sourceTree = "<group>"; };
+		3E96459F1B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMMarkingMenuSupportClasses.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +84,7 @@
 		3E628E5C1B248BDB00A9E560 /* MarkingMenu */ = {
 			isa = PBXGroup;
 			children = (
+				3EB653F21B329B29006D1AB7 /* FMMarkingMenu */,
 				3E628E5F1B248BDB00A9E560 /* AppDelegate.swift */,
 				3E628E611B248BDB00A9E560 /* ViewController.swift */,
 				3E628E631B248BDB00A9E560 /* Main.storyboard */,
@@ -110,6 +118,17 @@
 				3E628E741B248BDB00A9E560 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3EB653F21B329B29006D1AB7 /* FMMarkingMenu */ = {
+			isa = PBXGroup;
+			children = (
+				3E96459D1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift */,
+				3E96459A1B329C5700522A38 /* FMMarkingMenu.swift */,
+				3E96459C1B329FB300522A38 /* Header.h */,
+				3E96459F1B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift */,
+			);
+			name = FMMarkingMenu;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,8 +231,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E96459E1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift in Sources */,
 				3E628E621B248BDB00A9E560 /* ViewController.swift in Sources */,
+				3E9645A01B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift in Sources */,
 				3E628E601B248BDB00A9E560 /* AppDelegate.swift in Sources */,
+				3E96459B1B329C5700522A38 /* FMMarkingMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,6 +317,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = MarkingMenu/Header.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				TARGETED_DEVICE_FAMILY = 2;
 			};
@@ -333,6 +356,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = MarkingMenu/Header.h;
 				TARGETED_DEVICE_FAMILY = 2;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -411,6 +435,7 @@
 				3E628E7B1B248BDB00A9E560 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3E628E7C1B248BDB00A9E560 /* Build configuration list for PBXNativeTarget "MarkingMenuTests" */ = {
 			isa = XCConfigurationList;
@@ -419,6 +444,7 @@
 				3E628E7E1B248BDB00A9E560 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
