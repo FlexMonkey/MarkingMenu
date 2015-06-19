@@ -12,7 +12,7 @@ class FMMarkingMenuContentViewController: UIViewController
 {
     let markingMenuLayer = CAShapeLayer()
     
-    var markingMenuItems: [FMMarkingMenuItem]
+    var markingMenuItems: [FMMarkingMenuItem]!
     let radius = CGFloat(100)
     let labelRadius = CGFloat(130)
     let tau = CGFloat(M_PI * 2)
@@ -21,9 +21,8 @@ class FMMarkingMenuContentViewController: UIViewController
     
     var drawingOffset:CGPoint = CGPointZero
     
-    required init(markingMenuItems: [FMMarkingMenuItem], origin: CGPoint)
+    required init(origin: CGPoint)
     {
-        self.markingMenuItems = markingMenuItems
         self.origin = origin
         
         super.init(nibName: nil, bundle: nil)
@@ -68,23 +67,28 @@ class FMMarkingMenuContentViewController: UIViewController
             
             if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0
             {
+                closeMarkingMenu()
                 
-                
-                markingMenuItems = subItems
                 origin = locationInMarkingMenu
-                openMarkingMenu(locationInMarkingMenu)
+                openMarkingMenu(locationInView, markingMenuItems: subItems)
             }
         }
         
     }
     
-    func openMarkingMenu(locationInView: CGPoint)
+    var markingMenuLayers = [CAShapeLayer]()
+    var markingMenuLabels = [UILabel]()
+    
+    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem])
     {
-        // let centre = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
+        self.markingMenuItems = markingMenuItems
+        
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
-        let segments = CGFloat(markingMenuItems.count)
+        markingMenuLayers = [CAShapeLayer]()
+        markingMenuLabels = [UILabel]()
         
+        let segments = CGFloat(markingMenuItems.count)
         let sectionArc = (tau / segments)
         let paddingAngle = tau * 0.02
         
@@ -104,6 +108,8 @@ class FMMarkingMenuContentViewController: UIViewController
             
             let subLayer = CAShapeLayer()
             let subLayerPath = UIBezierPath()
+            
+            markingMenuLayers.append(subLayer)
             
             subLayer.strokeColor = UIColor.lightGrayColor().CGColor
             subLayer.fillColor = nil
@@ -125,6 +131,8 @@ class FMMarkingMenuContentViewController: UIViewController
             
             let label = UILabel()
             label.text =  " " + markingMenuItems[i].label + " "
+            
+            markingMenuLabels.append(label)
             
             let labelWidth = label.intrinsicContentSize().width
             let labelHeight = label.intrinsicContentSize().height
@@ -163,6 +171,9 @@ class FMMarkingMenuContentViewController: UIViewController
         
         // remove all sub layers
         // remove all label widgets
+        
+        markingMenuLayers.map({ $0.removeFromSuperlayer() })
+        markingMenuLabels.map({ $0.removeFromSuperview() })
     }
 
 

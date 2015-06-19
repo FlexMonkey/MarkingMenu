@@ -12,9 +12,16 @@ class FMMarkingMenu: NSObject
 {
     let markingMenuContentViewController: FMMarkingMenuContentViewController // = FMMarkingMenuContentViewController(markingMenuItems: [" Blur ", " Sharpen " , " Stylize ", " Color Effect ", " Color Adjustment "  , " Halftone Effect " , " Distortion Effect "])
     
-    let blur = FMMarkingMenuItem(label: "Blur", subItems:[FMMarkingMenuItem(label: "Gaussian"), FMMarkingMenuItem(label: "Box")])
-    let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "Posterize"), FMMarkingMenuItem(label: "Pixellate")])
+    let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "Gaussian Blur"), FMMarkingMenuItem(label: "Sharpen Luminance"), FMMarkingMenuItem(label: "Unsharp Mask")])
+
     let noFilter = FMMarkingMenuItem(label: "No Filter")
+    let colorAdjust = FMMarkingMenuItem(label: "Color Adjust", subItems:[FMMarkingMenuItem(label: "Exposure"), FMMarkingMenuItem(label: "Gamma"), FMMarkingMenuItem(label: "Hue"), FMMarkingMenuItem(label: "Temperature & Tint"), FMMarkingMenuItem(label: "Vibrance")])
+    let colorEffect = FMMarkingMenuItem(label: "Color Effect", subItems:[FMMarkingMenuItem(label: "Invert"), FMMarkingMenuItem(label: "Monochrome"), FMMarkingMenuItem(label: "Posterize"), FMMarkingMenuItem(label: "False Color"), FMMarkingMenuItem(label: "Sepia")])
+    let photoEffect = FMMarkingMenuItem(label: "Color Effect", subItems:[FMMarkingMenuItem(label: "Chrome"), FMMarkingMenuItem(label: "Fade"), FMMarkingMenuItem(label: "Instant"), FMMarkingMenuItem(label: "Noir"), FMMarkingMenuItem(label: "Tonal"), FMMarkingMenuItem(label: "Transfer")])
+    let halftone = FMMarkingMenuItem(label: "Color Adjust", subItems:[FMMarkingMenuItem(label: "Circular Screen"), FMMarkingMenuItem(label: "Dot Screen"), FMMarkingMenuItem(label: "Hatched Screen"), FMMarkingMenuItem(label: "Line Screen")])
+    let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "Bloom"), FMMarkingMenuItem(label: "Gloom"), FMMarkingMenuItem(label: "Pixellate")])
+    
+    let markingMenuItems:[FMMarkingMenuItem]
     
     let viewController: UIViewController
     let view: UIView
@@ -28,8 +35,8 @@ class FMMarkingMenu: NSObject
     {
         self.origin = origin
         
-        let markingMenuItems = [blur, styleize, noFilter]
-        markingMenuContentViewController = FMMarkingMenuContentViewController(markingMenuItems: markingMenuItems, origin: origin)
+        markingMenuItems = [blur, colorAdjust, colorEffect, photoEffect, halftone, styleize, noFilter]
+        markingMenuContentViewController = FMMarkingMenuContentViewController(origin: origin)
         
         self.viewController = viewController
         self.view = view
@@ -67,7 +74,8 @@ class FMMarkingMenu: NSObject
         
         viewController.presentViewController(markingMenuContentViewController, animated: false)
         {
-            self.markingMenuContentViewController.openMarkingMenu(locationInView)
+            self.markingMenuContentViewController.origin = self.origin
+            self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems)
         }
     }
 }
