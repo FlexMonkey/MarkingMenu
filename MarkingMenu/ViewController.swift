@@ -79,9 +79,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "CIBloom"), FMMarkingMenuItem(label: "CIGloom"), FMMarkingMenuItem(label: "CIPixellate")])
         
-        let deepFilter = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize])
+        let deepSubMenu = FMMarkingMenuItem(label: "Deep Sub Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize])
         
-        let markingMenuItems = [blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter, deepFilter]
+        let deepMenu = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize, deepSubMenu])
+        
+        let markingMenuItems = [blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter, deepMenu]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         
