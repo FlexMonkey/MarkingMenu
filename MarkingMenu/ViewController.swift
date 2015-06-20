@@ -17,17 +17,19 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let ciContext = CIContext(options: nil)
     let ciContextFast = CIContext(EAGLContext: EAGLContext(API: EAGLRenderingAPI.OpenGLES2), options: [kCIContextWorkingColorSpace: NSNull()])
     
+    let currentFilterLabel = UILabel()
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
         createMarkingMenu()
         
-        imageView.frame = view.bounds
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.image = photo
 
         view.addSubview(imageView)
+        view.addSubview(currentFilterLabel)
     }
     
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
@@ -42,6 +44,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         {
             imageView.image = photo
         }
+        
+        currentFilterLabel.text = markingMenuItem.label
+        currentFilterLabel.frame = CGRect(x: 5, y: view.frame.height - currentFilterLabel.intrinsicContentSize().height - 5, width: currentFilterLabel.intrinsicContentSize().width, height: currentFilterLabel.intrinsicContentSize().height)
     }
     
     func applyFilter(image: UIImage, filterName: String) -> UIImage
@@ -81,6 +86,13 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         
         markingMenu.markingMenuDelegate = self
+    }
+    
+    override func viewDidLayoutSubviews()
+    {
+        super.viewDidLayoutSubviews()
+        
+        imageView.frame = view.bounds.rectByInsetting(dx: 30, dy: 30)
     }
     
 }
