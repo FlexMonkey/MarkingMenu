@@ -42,6 +42,11 @@ class FMMarkingMenuContentViewController: UIViewController
         selectionLabel.layer.backgroundColor = UIColor.lightGrayColor().CGColor
         selectionLabel.layer.cornerRadius = 4
         view.addSubview(selectionLabel)
+        
+        view.layer.shadowColor = UIColor.blackColor().CGColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 0)
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 2
     }
 
     required init(coder aDecoder: NSCoder)
@@ -90,7 +95,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 
                 closeMarkingMenu()
                 
-                UIView.animateWithDuration(0.5, animations: {self.selectionLabel.alpha = 0}, completion: {_ in self.markingMenu.close()})
+                UIView.animateWithDuration(0.75, animations: {self.selectionLabel.alpha = 0}, completion: {_ in self.markingMenu.close()})
             }
         }
     }
@@ -105,7 +110,7 @@ class FMMarkingMenuContentViewController: UIViewController
         let sectionArc = (tau / segments)
         let paddingAngle = tau * 0.02
         
-        markingMenuLayer.strokeColor = UIColor.darkGrayColor().CGColor
+        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
         markingMenuLayer.fillColor = nil
         markingMenuLayer.lineWidth = 5
         markingMenuLayer.lineJoin = kCALineJoinRound
@@ -162,6 +167,7 @@ class FMMarkingMenuContentViewController: UIViewController
             label.layer.backgroundColor = UIColor.lightGrayColor().CGColor
             label.layer.cornerRadius = 4
             label.layer.masksToBounds = false
+            label.alpha = 0
             
             subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             
@@ -176,9 +182,11 @@ class FMMarkingMenuContentViewController: UIViewController
                 y: origin.y + sin(midAngle) * (labelRadius + 10)))
             
             subLayer.path = subLayerPath.CGPath
-            
+    
             markingMenuLayers.append(subLayer)
             view.addSubview(label)
+            
+            UIView.animateWithDuration(0.1, animations: {label.alpha = 1})
         }
     }
     
