@@ -15,7 +15,7 @@ Implementation is simple: create an instance of `MarkingMenu`:
 var markingMenu: FMMarkingMenu!
 ```
 
-...and, typically in `viewDidLoad()`, give it a target view controller, view and set of menu items:
+...and, typically in `viewDidLoad()`, give it a target view controller, view and set of [menu items](https://github.com/FlexMonkey/MarkingMenu/blob/master/README.md#creating-menus):
 
 ```
 markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
