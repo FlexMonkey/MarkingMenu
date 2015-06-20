@@ -108,7 +108,7 @@ class FMMarkingMenuContentViewController: UIViewController
         
         let segments = CGFloat(markingMenuItems.count)
         let sectionArc = (tau / segments)
-        let paddingAngle = tau * 0.02
+        let paddingAngle = tau * 0.01
         
         markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
         markingMenuLayer.fillColor = nil
@@ -126,7 +126,7 @@ class FMMarkingMenuContentViewController: UIViewController
             markingMenuLayer.path = originCircle.CGPath
         }
         
-        for var i = 0 ; i < Int(segments) ; i++
+        for var i = 0 ; i < markingMenuItems.count ; i++
         {
             let startAngle = (sectionArc * CGFloat(i)) + paddingAngle
             let endAngle = (sectionArc * CGFloat(i + 1)) - paddingAngle
@@ -136,12 +136,16 @@ class FMMarkingMenuContentViewController: UIViewController
             
             subLayer.strokeColor = UIColor.lightGrayColor().CGColor
             subLayer.fillColor = nil
-            subLayer.lineWidth = 8
             subLayer.lineCap = kCALineCapRound
             
             if (markingMenuItems[i].subItems ?? []).count != 0
             {
-                subLayer.lineDashPattern = [10, 10]
+                subLayer.lineWidth = 4
+                subLayer.lineDashPattern = [1, 4]
+            }
+            else
+            {
+                subLayer.lineWidth = 8
             }
             
             markingMenuLayer.addSublayer(subLayer)
@@ -149,14 +153,16 @@ class FMMarkingMenuContentViewController: UIViewController
             let midAngle = (startAngle + endAngle) / 2
             
             let label = UILabel()
-            label.text =  " " + markingMenuItems[i].label + " "
+            label.text = " " + markingMenuItems[i].label + " "
             
             markingMenuLabels.append(label)
             
             let labelWidth = label.intrinsicContentSize().width
             let labelHeight = label.intrinsicContentSize().height
             
-            let labelXOffset = (midAngle > pi * 0.5 && midAngle < pi * 1.5) ? -labelWidth + 15 : -15
+            let labelXOffsetTweak = (midAngle > pi * 0.45 && midAngle < pi * 0.55) || (midAngle > pi * 1.45 && midAngle < pi * 1.55) ? label.intrinsicContentSize().width / 2 : 15
+            
+            let labelXOffset = (midAngle > pi * 0.5 && midAngle < pi * 1.5) ? -labelWidth + labelXOffsetTweak : -labelXOffsetTweak
             let labelYOffset = (midAngle > pi) ? -labelHeight : midAngle == pi ? -labelHeight * 0.5 : 0
             
             label.frame = CGRect(origin: CGPoint(
@@ -178,8 +184,8 @@ class FMMarkingMenuContentViewController: UIViewController
                 y: origin.y + sin(midAngle) * radius))
             
             subLayerPath.addLineToPoint(CGPoint(
-                x: origin.x + cos(midAngle) * (labelRadius + 10),
-                y: origin.y + sin(midAngle) * (labelRadius + 10)))
+                x: origin.x + cos(midAngle) * (labelRadius + 12),
+                y: origin.y + sin(midAngle) * (labelRadius + 12)))
             
             subLayer.path = subLayerPath.CGPath
     
