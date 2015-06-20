@@ -20,6 +20,14 @@ class FMMarkingMenu: NSObject
     var tap: FMMarkingMenuPanGestureRecognizer!
     var previousTouchLocation = CGPointZero
     
+    weak var markingMenuDelegate: FMMarkingMenuDelegate?
+    {
+        didSet
+        {
+            markingMenuContentViewController.markingMenuDelegate = markingMenuDelegate
+        }
+    }
+    
     init(viewController: UIViewController, view: UIView, markingMenuItems:[FMMarkingMenuItem])
     {
         self.markingMenuItems = markingMenuItems
@@ -33,8 +41,15 @@ class FMMarkingMenu: NSObject
         
         super.init();
         
+        markingMenuContentViewController.markingMenu = self
+        
         tap = FMMarkingMenuPanGestureRecognizer(target: self, action: "tapHandler:")
         view.addGestureRecognizer(tap)
+    }
+    
+    deinit
+    {
+        viewController.view.removeGestureRecognizer(tap)
     }
     
     func tapHandler(recognizer: FMMarkingMenuPanGestureRecognizer)
@@ -49,9 +64,14 @@ class FMMarkingMenu: NSObject
         }
         else
         {
-            markingMenuContentViewController.closeMarkingMenu()
-            viewController.dismissViewControllerAnimated(false, completion: nil)
+           close()
         }
+    }
+    
+    func close()
+    {
+        markingMenuContentViewController.closeMarkingMenu()
+        viewController.dismissViewControllerAnimated(false, completion: nil)
     }
     
     private func open(locationInView: CGPoint)
@@ -70,14 +90,4 @@ class FMMarkingMenu: NSObject
     }
 }
 
-/// An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began
-/// with the first touch down, i.e. without requiring any movement.
-class FMMarkingMenuPanGestureRecognizer: UIPanGestureRecognizer
-{
-    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent!)
-    {
-        super.touchesBegan(touches, withEvent: event)
-        
-        state = UIGestureRecognizerState.Began
-    }
-}
+

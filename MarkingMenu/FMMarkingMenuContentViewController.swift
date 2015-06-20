@@ -19,12 +19,16 @@ class FMMarkingMenuContentViewController: UIViewController
     var origin: CGPoint
     
     let markingMenuLayer = CAShapeLayer()
-    
     var markingMenuItems: [FMMarkingMenuItem]!
     var markingMenuLayers = [CAShapeLayer]()
     var markingMenuLabels = [UILabel]()
     
     var drawingOffset:CGPoint = CGPointZero
+    
+    let selectionLabel = UILabel()
+    
+    weak var markingMenu: FMMarkingMenu!
+    weak var markingMenuDelegate: FMMarkingMenuDelegate?
     
     required init(origin: CGPoint)
     {
@@ -34,6 +38,10 @@ class FMMarkingMenuContentViewController: UIViewController
         
         view.layer.addSublayer(markingMenuLayer)
         markingMenuLayer.frame = view.bounds
+        
+        selectionLabel.layer.backgroundColor = UIColor.lightGrayColor().CGColor
+        selectionLabel.layer.cornerRadius = 4
+        view.addSubview(selectionLabel)
     }
 
     required init(coder aDecoder: NSCoder)
@@ -43,6 +51,11 @@ class FMMarkingMenuContentViewController: UIViewController
     
     func handleMovement(locationInView: CGPoint)
     {
+        if markingMenuLayer.path == nil
+        {
+            return
+        }
+        
         let drawPath = UIBezierPath(CGPath: markingMenuLayer.path)
         let locationInMarkingMenu = CGPoint(x: locationInView.x + drawingOffset.x, y: locationInView.y + drawingOffset.y)
         
@@ -51,7 +64,7 @@ class FMMarkingMenuContentViewController: UIViewController
         markingMenuLayer.path = drawPath.CGPath
         
         let distanceToMenuOrigin = origin.distance(locationInMarkingMenu)
-        
+       
         let sectionArc = tau / CGFloat(markingMenuItems.count)
         
         let angle = tau - (((pi * 1.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
@@ -60,7 +73,8 @@ class FMMarkingMenuContentViewController: UIViewController
         
         if CGFloat(distanceToMenuOrigin) > radius
         {
-            println("inx =  \(segmentIndex)  \(markingMenuItems[segmentIndex].label)")
+            selectionLabel.text = selectionLabel.text! + (selectionLabel.text!.isEmpty ? " " : " → ") + markingMenuItems[segmentIndex].label + " "
+            selectionLabel.frame = CGRect(x: view.frame.width / 2 - selectionLabel.intrinsicContentSize().width / 2, y: 40, width: selectionLabel.intrinsicContentSize().width, height: selectionLabel.intrinsicContentSize().height)
             
             if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0
             {
@@ -72,10 +86,13 @@ class FMMarkingMenuContentViewController: UIViewController
             }
             else
             {
-                // execute....
+                markingMenuDelegate?.FMMarkingMenuItemSelected(markingMenu!, markingMenuItem: markingMenuItems[segmentIndex])
+                
+                closeMarkingMenu()
+                
+                UIView.animateWithDuration(0.5, animations: {self.selectionLabel.alpha = 0}, completion: {_ in self.markingMenu.close()})
             }
         }
-        
     }
     
     func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
@@ -96,6 +113,10 @@ class FMMarkingMenuContentViewController: UIViewController
         
         if clearPath
         {
+            selectionLabel.text = ""
+            selectionLabel.frame = CGRectZero
+            selectionLabel.alpha = 1
+            
             let originCircle = UIBezierPath(ovalInRect: CGRect(origin: CGPoint(x: origin.x - 4, y: origin.y - 4), size: CGSize(width: 8, height: 8)))
             markingMenuLayer.path = originCircle.CGPath
         }
@@ -173,13 +194,4 @@ class FMMarkingMenuContentViewController: UIViewController
     }
 }
 
-extension CGPoint
-{
-    func distance(otherPoint: CGPoint) -> Float
-    {
-        let xSquare = Float((self.x - otherPoint.x) * (self.x - otherPoint.x))
-        let ySquare = Float((self.y - otherPoint.y) * (self.y - otherPoint.y))
-        
-        return sqrt(xSquare + ySquare)
-    }
-}
+

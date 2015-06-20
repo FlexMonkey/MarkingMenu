@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController
+class ViewController: UIViewController, FMMarkingMenuDelegate
 {
  
     let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "Gaussian Blur"), FMMarkingMenuItem(label: "Sharpen Luminance"), FMMarkingMenuItem(label: "Unsharp Mask")])
@@ -25,15 +25,19 @@ class ViewController: UIViewController
     {
         super.viewDidLoad()
         
-
-        
         let deepFilter = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorAdjust, colorEffect, photoEffect, halftone, styleize])
         
         let markingMenuItems = [blur, colorAdjust, colorEffect, photoEffect, halftone, styleize, noFilter, deepFilter]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
+        
+        markingMenu.markingMenuDelegate = self
     }
     
+    func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
+    {
+        println("Selected!!! \(markingMenuItem.label)")
+    }
       
 }
 
