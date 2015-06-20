@@ -58,3 +58,7 @@ Because `FMMarkingMenu` uses a custom gesture recognizer, you'll also need to ad
 ## Demo App
 
 The demo application allows the user to navigate through a selection of Core Image filters and apply to an image.
+
+## References
+
+[Extremely Efficient Menu Selection: Marking Menus for the Flash Platform](http://www.betriebsraum.de/blog/2009/12/11/extremely-efficient-menu-selection-marking-menus-for-the-flash-platform/)
