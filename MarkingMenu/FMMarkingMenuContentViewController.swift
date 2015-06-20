@@ -10,14 +10,19 @@ import UIKit
 
 class FMMarkingMenuContentViewController: UIViewController
 {
+    let tau = CGFloat(M_PI * 2)
+    let pi = CGFloat(M_PI)
+
+    let radius = CGFloat(100)
+    let labelRadius = CGFloat(130)
+    
+    var origin: CGPoint
+    
     let markingMenuLayer = CAShapeLayer()
     
     var markingMenuItems: [FMMarkingMenuItem]!
-    let radius = CGFloat(100)
-    let labelRadius = CGFloat(130)
-    let tau = CGFloat(M_PI * 2)
-    let pi = CGFloat(M_PI)
-    var origin: CGPoint
+    var markingMenuLayers = [CAShapeLayer]()
+    var markingMenuLabels = [UILabel]()
     
     var drawingOffset:CGPoint = CGPointZero
     
@@ -36,16 +41,8 @@ class FMMarkingMenuContentViewController: UIViewController
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent)
-    {
-        super.touchesEnded(touches, withEvent: event)
-        
-        closeMarkingMenu()
-    }
-    
     func handleMovement(locationInView: CGPoint)
     {
-        // let centre = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
         let drawPath = UIBezierPath(CGPath: markingMenuLayer.path)
         let locationInMarkingMenu = CGPoint(x: locationInView.x + drawingOffset.x, y: locationInView.y + drawingOffset.y)
         
@@ -63,30 +60,29 @@ class FMMarkingMenuContentViewController: UIViewController
         
         if CGFloat(distanceToMenuOrigin) > radius
         {
-            println("inx =  \(segmentIndex)  \(markingMenuItems[segmentIndex].label) angle = \(angle.radiansToDegrees())")
+            println("inx =  \(segmentIndex)  \(markingMenuItems[segmentIndex].label)")
             
             if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0
             {
-                closeMarkingMenu()
+                markingMenuLayers.map({ $0.opacity = $0.opacity * 0.15 })
+                markingMenuLabels.map(){ $0.alpha = $0.alpha * 0.15 }
                 
                 origin = locationInMarkingMenu
-                openMarkingMenu(locationInView, markingMenuItems: subItems)
+                openMarkingMenu(locationInView, markingMenuItems: subItems, clearPath: false)
+            }
+            else
+            {
+                // execute....
             }
         }
         
     }
     
-    var markingMenuLayers = [CAShapeLayer]()
-    var markingMenuLabels = [UILabel]()
-    
-    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem])
+    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
     {
         self.markingMenuItems = markingMenuItems
         
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
-        
-        markingMenuLayers = [CAShapeLayer]()
-        markingMenuLabels = [UILabel]()
         
         let segments = CGFloat(markingMenuItems.count)
         let sectionArc = (tau / segments)
@@ -98,8 +94,11 @@ class FMMarkingMenuContentViewController: UIViewController
         markingMenuLayer.lineJoin = kCALineJoinRound
         markingMenuLayer.lineCap = kCALineCapRound
         
-        let originCircle = UIBezierPath(ovalInRect: CGRect(origin: CGPoint(x: origin.x - 4, y: origin.y - 4), size: CGSize(width: 8, height: 8)))
-        markingMenuLayer.path = originCircle.CGPath
+        if clearPath
+        {
+            let originCircle = UIBezierPath(ovalInRect: CGRect(origin: CGPoint(x: origin.x - 4, y: origin.y - 4), size: CGSize(width: 8, height: 8)))
+            markingMenuLayer.path = originCircle.CGPath
+        }
         
         for var i = 0 ; i < Int(segments) ; i++
         {
@@ -109,18 +108,12 @@ class FMMarkingMenuContentViewController: UIViewController
             let subLayer = CAShapeLayer()
             let subLayerPath = UIBezierPath()
             
-            markingMenuLayers.append(subLayer)
-            
             subLayer.strokeColor = UIColor.lightGrayColor().CGColor
             subLayer.fillColor = nil
             subLayer.lineWidth = 8
             subLayer.lineCap = kCALineCapRound
             
-            if (markingMenuItems[i].subItems ?? []).count == 0
-            {
-                // execute
-            }
-            else
+            if (markingMenuItems[i].subItems ?? []).count != 0
             {
                 subLayer.lineDashPattern = [10, 10]
             }
@@ -151,6 +144,8 @@ class FMMarkingMenuContentViewController: UIViewController
             
             subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             
+            // join arc to label
+            
             subLayerPath.moveToPoint(CGPoint(
                 x: origin.x + cos(midAngle) * radius,
                 y: origin.y + sin(midAngle) * radius))
@@ -161,21 +156,30 @@ class FMMarkingMenuContentViewController: UIViewController
             
             subLayer.path = subLayerPath.CGPath
             
+            markingMenuLayers.append(subLayer)
             view.addSubview(label)
         }
     }
     
     func closeMarkingMenu()
-    {        
-        // markingMenuLayer.removeFromSuperlayer()
-        
-        // remove all sub layers
-        // remove all label widgets
-        
+    {
         markingMenuLayers.map({ $0.removeFromSuperlayer() })
         markingMenuLabels.map({ $0.removeFromSuperview() })
+        
+        markingMenuLayers = [CAShapeLayer]()
+        markingMenuLabels = [UILabel]()
+        
+        markingMenuLayer.path = nil
     }
+}
 
-
-
+extension CGPoint
+{
+    func distance(otherPoint: CGPoint) -> Float
+    {
+        let xSquare = Float((self.x - otherPoint.x) * (self.x - otherPoint.x))
+        let ySquare = Float((self.y - otherPoint.y) * (self.y - otherPoint.y))
+        
+        return sqrt(xSquare + ySquare)
+    }
 }
