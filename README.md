@@ -54,3 +54,7 @@ Because `FMMarkingMenu` uses a custom gesture recognizer, you'll also need to ad
 ```
 #import <UIKit/UIGestureRecognizerSubclass.h>
 ```
+
+## Demo App
+
+The demo application allows the user to navigate through a selection of Core Image filters and apply to an image.
