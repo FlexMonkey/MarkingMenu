@@ -57,8 +57,12 @@ Because `FMMarkingMenu` uses a custom gesture recognizer, you'll also need to ad
 
 ## Demo App
 
-The demo application allows the user to navigate through a selection of Core Image filters and apply to an image.
+The demo application allows the user to navigate through a selection of Core Image filters and apply to an image. The app is designed for iPad rather than being universal. I don't see `FMMarkingMenu` as a user interface paradigm suited for iPhone (at this time!).
 
 ## References
 
 [Extremely Efficient Menu Selection: Marking Menus for the Flash Platform](http://www.betriebsraum.de/blog/2009/12/11/extremely-efficient-menu-selection-marking-menus-for-the-flash-platform/)
+
+[User Learning and Performance with Marking Menus](http://www.billbuxton.com/MMUserLearn.html)
+
+[The Limits Of Expert Performance Using Hierarchic Marking Menus](http://www.billbuxton.com/MMExpert.html)
