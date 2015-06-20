@@ -17,6 +17,7 @@
 		3E96459E1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E96459D1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift */; };
 		3E9645A01B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E96459F1B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift */; };
 		BEDA5EB31B352A3F002118B0 /* photo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = BEDA5EB21B352A3F002118B0 /* photo.jpg */; };
+		BEDA5EB51B3577B5002118B0 /* markingMenu.gif in Resources */ = {isa = PBXBuildFile; fileRef = BEDA5EB41B3577B5002118B0 /* markingMenu.gif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		3E96459D1B329FDE00522A38 /* FMMarkingMenuContentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMMarkingMenuContentViewController.swift; sourceTree = "<group>"; };
 		3E96459F1B332B5B00522A38 /* FMMarkingMenuSupportClasses.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMMarkingMenuSupportClasses.swift; sourceTree = "<group>"; };
 		BEDA5EB21B352A3F002118B0 /* photo.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo.jpg; path = assets/photo.jpg; sourceTree = "<group>"; };
+		BEDA5EB41B3577B5002118B0 /* markingMenu.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = markingMenu.gif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,6 +139,7 @@
 		BEDA5EB11B352A31002118B0 /* assets */ = {
 			isa = PBXGroup;
 			children = (
+				BEDA5EB41B3577B5002118B0 /* markingMenu.gif */,
 				BEDA5EB21B352A3F002118B0 /* photo.jpg */,
 			);
 			name = assets;
@@ -226,6 +229,7 @@
 				3E628E6A1B248BDB00A9E560 /* LaunchScreen.xib in Resources */,
 				BEDA5EB31B352A3F002118B0 /* photo.jpg in Resources */,
 				3E628E671B248BDB00A9E560 /* Images.xcassets in Resources */,
+				BEDA5EB51B3577B5002118B0 /* markingMenu.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
