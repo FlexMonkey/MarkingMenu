@@ -61,6 +61,8 @@ The demo application allows the user to navigate through a selection of Core Ima
 
 ## References
 
+[A Marking Menu Component for iOS in Swift](http://flexmonkey.blogspot.co.uk/2015/06/a-marking-menu-component-for-ios-in.html)
+
 [Extremely Efficient Menu Selection: Marking Menus for the Flash Platform](http://www.betriebsraum.de/blog/2009/12/11/extremely-efficient-menu-selection-marking-menus-for-the-flash-platform/)
 
 [User Learning and Performance with Marking Menus](http://www.billbuxton.com/MMUserLearn.html)
