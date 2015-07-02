@@ -14,7 +14,6 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let imageView = UIImageView()
     var markingMenu: FMMarkingMenu!
     
-    let ciContext = CIContext(options: nil)
     let ciContextFast = CIContext(EAGLContext: EAGLContext(API: EAGLRenderingAPI.OpenGLES2), options: [kCIContextWorkingColorSpace: NSNull()])
     
     let currentFilterLabel = UILabel()
@@ -53,12 +52,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     {
         let ciFilter = CIFilter(name: filterName)
         
-        ciFilter.setValue(CIImage(image: image), forKey: kCIInputImageKey)
+        ciFilter!.setValue(CIImage(image: image), forKey: kCIInputImageKey)
         
-        let filteredImageData = ciFilter.valueForKey(kCIOutputImageKey) as! CIImage!
-        let filteredImageRef = ciContext.createCGImage(filteredImageData, fromRect: filteredImageData.extent())
+        let filteredImageData = ciFilter!.valueForKey(kCIOutputImageKey) as! CIImage!
         
-        var filteredImage = UIImage(CGImage: filteredImageRef)!
+        let filteredImage = UIImage(CIImage: filteredImageData)
         
         return filteredImage
     }

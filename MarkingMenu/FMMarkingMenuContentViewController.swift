@@ -72,7 +72,7 @@ class FMMarkingMenuContentViewController: UIViewController
             return
         }
         
-        let drawPath = UIBezierPath(CGPath: markingMenuLayer.path)
+        let drawPath = UIBezierPath(CGPath: markingMenuLayer.path!)
         let locationInMarkingMenu = CGPoint(x: locationInView.x + drawingOffset.x, y: locationInView.y + drawingOffset.y)
         
         drawPath.addLineToPoint(locationInMarkingMenu)

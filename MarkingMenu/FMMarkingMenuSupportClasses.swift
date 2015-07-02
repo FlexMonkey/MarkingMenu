@@ -39,7 +39,7 @@ protocol FMMarkingMenuDelegate: NSObjectProtocol
 /// with the first touch down, i.e. without requiring any movement.
 class FMMarkingMenuPanGestureRecognizer: UIPanGestureRecognizer
 {
-    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent!)
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent)
     {
         super.touchesBegan(touches, withEvent: event)
         
