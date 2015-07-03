@@ -22,11 +22,14 @@ struct FMMarkingMenuItem
 {
     let label: String
     let subItems: [FMMarkingMenuItem]?
+    let isValueSlider:Bool // TODO menu items and sliders should be two distinct structs with a common protocol
+    var valueSliderValue: CGFloat = 0.0
     
-    init(label: String, subItems: [FMMarkingMenuItem]? = nil)
+    init(label: String, subItems: [FMMarkingMenuItem]? = nil, isValueSlider: Bool = false)
     {
         self.label = label
         self.subItems = subItems
+        self.isValueSlider = isValueSlider
     }
 }
 
@@ -35,8 +38,8 @@ protocol FMMarkingMenuDelegate: NSObjectProtocol
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
 }
 
-/// An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began
-/// with the first touch down, i.e. without requiring any movement.
+// An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began
+// with the first touch down, i.e. without requiring any movement.
 class FMMarkingMenuPanGestureRecognizer: UIPanGestureRecognizer
 {
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent)

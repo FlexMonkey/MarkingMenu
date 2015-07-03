@@ -81,7 +81,10 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let deepMenu = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize, deepSubMenu])
         
-        let markingMenuItems = [blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter, deepMenu]
+        let valueSliderOne = FMMarkingMenuItem(label: "Value Slider One", subItems: [], isValueSlider: true)
+        let valueSliderTwo = FMMarkingMenuItem(label: "Value Slider Two", subItems: [], isValueSlider: true)
+        
+        let markingMenuItems = [blur, colorEffect, distort, valueSliderOne,  photoEffect, halftone, styleize, noFilter, deepMenu, valueSliderTwo]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         
