@@ -17,6 +17,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let ciContextFast = CIContext(EAGLContext: EAGLContext(API: EAGLRenderingAPI.OpenGLES2), options: [kCIContextWorkingColorSpace: NSNull()])
     
     let currentFilterLabel = UILabel()
+    var filterName: String?
     
     override func viewDidLoad()
     {
@@ -25,24 +26,20 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         createMarkingMenu()
         
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
-        imageView.image = photo
 
         view.addSubview(imageView)
         view.addSubview(currentFilterLabel)
+        
+        applyFilter()
     }
     
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
     {
         let filters = (CIFilter.filterNamesInCategories(nil) ?? [AnyObject]()).filter({ $0 as! String ==  markingMenuItem.label})
         
-        if filters.count != 0
-        {
-            imageView.image = applyFilter(photo, filterName: markingMenuItem.label)
-        }
-        else
-        {
-            imageView.image = photo
-        }
+        filterName = filters.count != 0 ? markingMenuItem.label : nil
+        
+        applyFilter()
         
         currentFilterLabel.text = markingMenuItem.label
         currentFilterLabel.frame = CGRect(x: 5, y: view.frame.height - currentFilterLabel.intrinsicContentSize().height - 5, width: currentFilterLabel.intrinsicContentSize().width, height: currentFilterLabel.intrinsicContentSize().height)
@@ -51,19 +48,41 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, markingMenuItemIndex: Int, newValue: CGFloat)
     {
         markingMenuItems[markingMenuItemIndex].valueSliderValue = newValue
+        
+        // print("setting \(markingMenuItemIndex) to \(newValue)")
+        
+        applyFilter()
     }
     
-    func applyFilter(image: UIImage, filterName: String) -> UIImage
+    func applyFilter()
     {
-        let ciFilter = CIFilter(name: filterName)
+        let colorControls = CIFilter(name: "CIColorControls")
         
-        ciFilter!.setValue(CIImage(image: image), forKey: kCIInputImageKey)
+        colorControls!.setValue(CIImage(image: photo), forKey: kCIInputImageKey)
+        colorControls!.setValue(markingMenuItems[0].valueSliderValue, forKey: kCIInputBrightnessKey)
+        colorControls!.setValue(markingMenuItems[1].valueSliderValue, forKey: kCIInputSaturationKey)
+        colorControls!.setValue(markingMenuItems[2].valueSliderValue, forKey: kCIInputContrastKey)
         
-        let filteredImageData = ciFilter!.valueForKey(kCIOutputImageKey) as! CIImage!
+        print("\(markingMenuItems[0].valueSliderValue)  \(markingMenuItems[1].valueSliderValue)   \(markingMenuItems[2].valueSliderValue)")
+        
+        let filteredImageData: CIImage
+        
+        if let filterName = filterName
+        {
+            let ciFilter = CIFilter(name: filterName)
+            
+            ciFilter!.setValue(colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!, forKey: kCIInputImageKey)
+            
+            filteredImageData = ciFilter!.valueForKey(kCIOutputImageKey) as! CIImage!
+        }
+        else
+        {
+            filteredImageData = colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!
+        }
         
         let filteredImage = UIImage(CIImage: filteredImageData)
         
-        return filteredImage
+        imageView.image = filteredImage
     }
     
     var markingMenuItems: [FMMarkingMenuItem]!
@@ -84,17 +103,16 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "CIBloom"), FMMarkingMenuItem(label: "CIGloom"), FMMarkingMenuItem(label: "CIPixellate")])
         
-        let deepSubMenu = FMMarkingMenuItem(label: "Deep Sub Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize])
+    
+        var brightness = FMMarkingMenuItem(label: "Brightness", subItems: [], isValueSlider: true)
+        var saturation = FMMarkingMenuItem(label: "Saturation", subItems: [], isValueSlider: true)
+        var contrast = FMMarkingMenuItem(label: "Contrast", subItems: [], isValueSlider: true)
         
-        let deepMenu = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize, deepSubMenu])
+        brightness.valueSliderValue = 0
+        saturation.valueSliderValue = 0.75
+        contrast.valueSliderValue = 1
         
-        var valueSliderOne = FMMarkingMenuItem(label: "Value Slider 25", subItems: [], isValueSlider: true)
-        var valueSliderTwo = FMMarkingMenuItem(label: "Value Slider 75", subItems: [], isValueSlider: true)
-        
-        valueSliderOne.valueSliderValue = 0.25
-        valueSliderTwo.valueSliderValue = 0.75
-        
-        markingMenuItems = [blur, colorEffect, distort, valueSliderOne,  photoEffect, halftone, styleize, noFilter, deepMenu, valueSliderTwo]
+        markingMenuItems = [brightness, saturation, contrast, blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         

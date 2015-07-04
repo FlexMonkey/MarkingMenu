@@ -127,7 +127,7 @@ class FMMarkingMenuContentViewController: UIViewController
            
             markingMenu!.markingMenuItems[valueSliderIndex!].valueSliderValue = normalisedValue
             
-            markingMenuDelegate?.FMMarkingMenuValueSliderChange(markingMenu!, markingMenuItem: markingMenuItems[valueSliderIndex!], markingMenuItemIndex: segmentIndex,  newValue: normalisedValue)
+            markingMenuDelegate?.FMMarkingMenuValueSliderChange(markingMenu!, markingMenuItem: markingMenuItems[valueSliderIndex!], markingMenuItemIndex: valueSliderIndex!,  newValue: normalisedValue)
         }
         else if CGFloat(distanceToMenuOrigin) > radius
         {
