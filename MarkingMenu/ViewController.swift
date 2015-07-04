@@ -48,6 +48,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         currentFilterLabel.frame = CGRect(x: 5, y: view.frame.height - currentFilterLabel.intrinsicContentSize().height - 5, width: currentFilterLabel.intrinsicContentSize().width, height: currentFilterLabel.intrinsicContentSize().height)
     }
     
+    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, markingMenuItemIndex: Int, newValue: CGFloat)
+    {
+        markingMenuItems[markingMenuItemIndex].valueSliderValue = newValue
+    }
+    
     func applyFilter(image: UIImage, filterName: String) -> UIImage
     {
         let ciFilter = CIFilter(name: filterName)
@@ -60,6 +65,8 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         return filteredImage
     }
+    
+    var markingMenuItems: [FMMarkingMenuItem]!
     
     func createMarkingMenu()
     {
@@ -81,10 +88,13 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let deepMenu = FMMarkingMenuItem(label: "Deep Menu", subItems: [blur, colorEffect, distort, photoEffect, halftone, styleize, deepSubMenu])
         
-        let valueSliderOne = FMMarkingMenuItem(label: "Value Slider One", subItems: [], isValueSlider: true)
-        let valueSliderTwo = FMMarkingMenuItem(label: "Value Slider Two", subItems: [], isValueSlider: true)
+        var valueSliderOne = FMMarkingMenuItem(label: "Value Slider 25", subItems: [], isValueSlider: true)
+        var valueSliderTwo = FMMarkingMenuItem(label: "Value Slider 75", subItems: [], isValueSlider: true)
         
-        let markingMenuItems = [blur, colorEffect, distort, valueSliderOne,  photoEffect, halftone, styleize, noFilter, deepMenu, valueSliderTwo]
+        valueSliderOne.valueSliderValue = 0.25
+        valueSliderTwo.valueSliderValue = 0.75
+        
+        markingMenuItems = [blur, colorEffect, distort, valueSliderOne,  photoEffect, halftone, styleize, noFilter, deepMenu, valueSliderTwo]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         

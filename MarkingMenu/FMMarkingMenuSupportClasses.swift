@@ -36,6 +36,8 @@ struct FMMarkingMenuItem
 protocol FMMarkingMenuDelegate: NSObjectProtocol
 {
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
+    
+    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, markingMenuItemIndex: Int, newValue: CGFloat)
 }
 
 // An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began

@@ -24,7 +24,7 @@ class FMMarkingMenu: NSObject
 {
     let markingMenuContentViewController: FMMarkingMenuContentViewController
         
-    let markingMenuItems:[FMMarkingMenuItem]
+    var markingMenuItems:[FMMarkingMenuItem]
     
     let viewController: UIViewController
     let view: UIView
