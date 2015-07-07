@@ -33,6 +33,12 @@ struct FMMarkingMenuItem
     }
 }
 
+enum FMMarkingMenuLayoutMode
+{
+    case Circular       // displays menu items over the full circumference of a circle
+    case SemiCircular   // displays menu items over half the circumference of a circle from 9 o'clock through 3 o'clock (clockwise)
+}
+
 protocol FMMarkingMenuDelegate: NSObjectProtocol
 {
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)

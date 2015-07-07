@@ -32,6 +32,8 @@ class FMMarkingMenu: NSObject
     var tap: FMMarkingMenuPanGestureRecognizer!
     var previousTouchLocation = CGPointZero
     
+    var layoutMode = FMMarkingMenuLayoutMode.SemiCircular
+    
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     {
         didSet
@@ -92,6 +94,8 @@ class FMMarkingMenu: NSObject
         markingMenuContentViewController.modalTransitionStyle = UIModalTransitionStyle.CrossDissolve
         
         markingMenuContentViewController.view.frame = view.bounds
+        
+        markingMenuContentViewController.layoutMode = layoutMode
         
         viewController.presentViewController(markingMenuContentViewController, animated: false)
         {

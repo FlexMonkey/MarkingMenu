@@ -34,6 +34,8 @@ class FMMarkingMenuContentViewController: UIViewController
     var markingMenuLayers = [CAShapeLayer]()
     var markingMenuLabels = [UILabel]()
     
+    var layoutMode = FMMarkingMenuLayoutMode.Circular
+    
     var drawingOffset:CGPoint = CGPointZero
     
     let selectionLabel = UILabel()
@@ -47,6 +49,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 valueSliderProgressLayer?.removeFromSuperlayer()
                 valueSliderProgressLayer = nil
                 valueSliderInitialValue = nil
+                previousSliderValue = nil
             }
             else
             {
@@ -61,9 +64,11 @@ class FMMarkingMenuContentViewController: UIViewController
             }
         }
     }
+    
     var valueSliderInitialValue: CGFloat?
     var valueSliderProgressLayer: CAShapeLayer?
     var valueSliderIndex: Int?
+    var previousSliderValue:CGFloat?
     
     weak var markingMenu: FMMarkingMenu!
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
@@ -108,19 +113,39 @@ class FMMarkingMenuContentViewController: UIViewController
         
         let distanceToMenuOrigin = origin.distance(locationInMarkingMenu)
        
-        let sectionArc = tau / CGFloat(markingMenuItems.count)
+        let sectionArc = getSectionArc()
         
-        let angle = tau - (((pi * 1.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+        let angle: CGFloat
         
-        let segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
+        let segmentIndex: Int
+        
+        if layoutMode == FMMarkingMenuLayoutMode.Circular
+        {
+            angle = tau - (((pi * 1.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+            segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
+        }
+        else
+        {
+            angle = 0 - (((pi * 0.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+            segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
+        }
         
         if let valueSliderInitialAngle = valueSliderInitialAngle
         {
-            let diff = (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
+            let diff: CGFloat
             
-            let unclippedNormalisedValue = valueSliderInitialValue! + (diff / pi)
+            if layoutMode == FMMarkingMenuLayoutMode.Circular
+            {
+                diff = (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
+            }
+            else
+            {
+                diff = (angle - valueSliderInitialAngle) < -pi ?  (angle - valueSliderInitialAngle) + tau :
+                    
+                    (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
+            }
             
-            var normalisedValue = min(max(0, unclippedNormalisedValue), 1)
+            var normalisedValue = min(max(0, valueSliderInitialValue! + (diff / pi)), 1)
             if previousSliderValue < 0.1 && normalisedValue == 1
             {
                 normalisedValue = 0
@@ -138,7 +163,7 @@ class FMMarkingMenuContentViewController: UIViewController
             
             markingMenuDelegate?.FMMarkingMenuValueSliderChange(markingMenu!, markingMenuItem: markingMenuItems[valueSliderIndex!], markingMenuItemIndex: valueSliderIndex!,  newValue: normalisedValue)
         }
-        else if CGFloat(distanceToMenuOrigin) > radius
+        else if CGFloat(distanceToMenuOrigin) > radius && segmentIndex < markingMenu!.markingMenuItems.count
         {
             selectionLabel.text = selectionLabel.text! + (selectionLabel.text!.isEmpty ? " " : " → ") + markingMenuItems[segmentIndex].label + " "
             selectionLabel.frame = CGRect(x: view.frame.width / 2 - selectionLabel.intrinsicContentSize().width / 2, y: 40, width: selectionLabel.intrinsicContentSize().width, height: selectionLabel.intrinsicContentSize().height)
@@ -179,8 +204,6 @@ class FMMarkingMenuContentViewController: UIViewController
         }
     }
     
-    var previousSliderValue:CGFloat?
-    
     func updateSliderProgressLayer(normalisedValue: CGFloat)
     {
         guard let valueSliderProgressLayer = valueSliderProgressLayer, valueSliderInitialAngle = valueSliderInitialAngle else
@@ -189,8 +212,8 @@ class FMMarkingMenuContentViewController: UIViewController
         }
    
         let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
-        let startAngle = tweakedValueSliderInitialAngle - pi / 2
-        let endAngle = startAngle + pi * normalisedValue
+        let startAngle = tweakedValueSliderInitialAngle - (pi / 2)  + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        let endAngle = startAngle + (pi * normalisedValue)
         
         valueSliderProgressLayer.lineWidth = 6
         valueSliderProgressLayer.lineDashPattern = [4, 8]
@@ -215,8 +238,8 @@ class FMMarkingMenuContentViewController: UIViewController
         let subLayer = markingMenuLayers[segmentIndex]
         
         let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
-        let startAngle = tweakedValueSliderInitialAngle - (pi / 2)
-        let endAngle = tweakedValueSliderInitialAngle + (pi / 2)
+        let startAngle = tweakedValueSliderInitialAngle - (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        let endAngle = tweakedValueSliderInitialAngle + (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
         
         subLayer.lineWidth = 8
         subLayer.lineDashPattern = [4, 8]
@@ -226,9 +249,9 @@ class FMMarkingMenuContentViewController: UIViewController
         subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
         
         // draw connecting line to label. To do: move to common code....
-        let segments = CGFloat(markingMenuItems.count)
-        let sectionArc = (tau / segments)
-        let labelLineAngle = (sectionArc * (CGFloat(segmentIndex) + 0.5))
+
+        let sectionArc = getSectionArc()
+        let labelLineAngle = (sectionArc * (CGFloat(segmentIndex) + 0.5)) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
         
         subLayerPath.moveToPoint(CGPoint(
             x: origin.x + cos(labelLineAngle) * radius,
@@ -241,14 +264,21 @@ class FMMarkingMenuContentViewController: UIViewController
         subLayer.path = subLayerPath.CGPath
     }
     
+    func getSectionArc() -> CGFloat
+    {
+        let segments = CGFloat(markingMenuItems.count)
+        let sectionArc = (tau / segments) / (layoutMode == FMMarkingMenuLayoutMode.Circular ? 1.0 : 2.0)
+        
+        return sectionArc
+    }
+    
     func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
     {
         self.markingMenuItems = markingMenuItems
         
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
-        let segments = CGFloat(markingMenuItems.count)
-        let sectionArc = (tau / segments)
+        let sectionArc = getSectionArc()
         let paddingAngle = tau * 0.01
         
         markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
@@ -271,8 +301,8 @@ class FMMarkingMenuContentViewController: UIViewController
         
         for var i = 0 ; i < markingMenuItems.count ; i++
         {
-            let startAngle = (sectionArc * CGFloat(i)) + paddingAngle
-            let endAngle = (sectionArc * CGFloat(i + 1)) - paddingAngle
+            let startAngle = (sectionArc * CGFloat(i)) + paddingAngle + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+            let endAngle = (sectionArc * CGFloat(i + 1)) - paddingAngle + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
             
             let subLayer = CAShapeLayer()
             let subLayerPath = UIBezierPath()
