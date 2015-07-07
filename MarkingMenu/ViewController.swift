@@ -62,15 +62,13 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         colorControls!.setValue(markingMenuItems[0].valueSliderValue, forKey: kCIInputBrightnessKey)
         colorControls!.setValue(markingMenuItems[1].valueSliderValue, forKey: kCIInputSaturationKey)
         colorControls!.setValue(markingMenuItems[2].valueSliderValue, forKey: kCIInputContrastKey)
-        
-        print("\(markingMenuItems[0].valueSliderValue)  \(markingMenuItems[1].valueSliderValue)   \(markingMenuItems[2].valueSliderValue)")
-        
+ 
         let filteredImageData: CIImage
         
         if let filterName = filterName
         {
             let ciFilter = CIFilter(name: filterName)
-            
+  
             ciFilter!.setValue(colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!, forKey: kCIInputImageKey)
             
             filteredImageData = ciFilter!.valueForKey(kCIOutputImageKey) as! CIImage!
@@ -109,7 +107,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         var contrast = FMMarkingMenuItem(label: "Contrast", subItems: [], isValueSlider: true)
         
         brightness.valueSliderValue = 0
-        saturation.valueSliderValue = 0.75
+        saturation.valueSliderValue = 0.75;
         contrast.valueSliderValue = 1
         
         markingMenuItems = [brightness, saturation, contrast, blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter]

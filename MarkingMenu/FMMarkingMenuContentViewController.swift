@@ -116,14 +116,23 @@ class FMMarkingMenuContentViewController: UIViewController
         
         if let valueSliderInitialAngle = valueSliderInitialAngle
         {
-            var diff = (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
-            diff = diff < -pi ? diff + pi + pi : diff
+            let diff = (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
             
             let unclippedNormalisedValue = valueSliderInitialValue! + (diff / pi)
             
-            let normalisedValue = min(max(0, unclippedNormalisedValue), 1)
+            var normalisedValue = min(max(0, unclippedNormalisedValue), 1)
+            if previousSliderValue < 0.1 && normalisedValue == 1
+            {
+                normalisedValue = 0
+            }
+            else if previousSliderValue > 0.9 && normalisedValue == 0
+            {
+                normalisedValue = 1
+            }
             
             updateSliderProgressLayer(normalisedValue)
+            
+            previousSliderValue = normalisedValue
            
             markingMenu!.markingMenuItems[valueSliderIndex!].valueSliderValue = normalisedValue
             
@@ -153,6 +162,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 }
                 
                 valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
+                previousSliderValue = valueSliderInitialAngle
                 valueSliderInitialAngle = angle
                 
                 displaySlider(segmentIndex)
@@ -168,6 +178,8 @@ class FMMarkingMenuContentViewController: UIViewController
             }
         }
     }
+    
+    var previousSliderValue:CGFloat?
     
     func updateSliderProgressLayer(normalisedValue: CGFloat)
     {
