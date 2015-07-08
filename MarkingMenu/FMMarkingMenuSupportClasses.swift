@@ -39,6 +39,12 @@ enum FMMarkingMenuLayoutMode
     case SemiCircular   // displays menu items over half the circumference of a circle from 9 o'clock through 3 o'clock (clockwise)
 }
 
+enum FMMarkingMenuLaunchMode
+{
+    case OpenAtScreenCentre
+    case OpenAtTouchLocation
+}
+
 protocol FMMarkingMenuDelegate: NSObjectProtocol
 {
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)

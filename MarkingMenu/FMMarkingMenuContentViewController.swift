@@ -27,7 +27,7 @@ class FMMarkingMenuContentViewController: UIViewController
     let radius = CGFloat(100)
     let labelRadius = CGFloat(130)
     
-    var origin: CGPoint
+    var origin = CGPointZero
     
     let markingMenuLayer = CAShapeLayer()
     var markingMenuItems: [FMMarkingMenuItem]!
@@ -73,10 +73,8 @@ class FMMarkingMenuContentViewController: UIViewController
     weak var markingMenu: FMMarkingMenu!
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     
-    required init(origin: CGPoint)
+    required init()
     {
-        self.origin = origin
-        
         super.init(nibName: nil, bundle: nil)
         
         view.layer.addSublayer(markingMenuLayer)

@@ -110,7 +110,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         saturation.valueSliderValue = 0.75;
         contrast.valueSliderValue = 1
         
-        markingMenuItems = [brightness, saturation, contrast, blur, colorEffect, distort, photoEffect, halftone, styleize, noFilter]
+        markingMenuItems = [brightness, saturation, contrast, blur, colorEffect] // , distort, photoEffect, halftone, styleize, noFilter]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         

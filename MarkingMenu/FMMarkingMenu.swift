@@ -33,6 +33,7 @@ class FMMarkingMenu: NSObject
     var previousTouchLocation = CGPointZero
     
     var layoutMode = FMMarkingMenuLayoutMode.SemiCircular
+    var launchMode = FMMarkingMenuLaunchMode.OpenAtTouchLocation
     
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     {
@@ -46,8 +47,7 @@ class FMMarkingMenu: NSObject
     {
         self.markingMenuItems = markingMenuItems
      
-        let markingMenuOrigin = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
-        markingMenuContentViewController = FMMarkingMenuContentViewController(origin: markingMenuOrigin)
+        markingMenuContentViewController = FMMarkingMenuContentViewController()
         
         self.viewController = viewController
         self.view = view
@@ -99,7 +99,17 @@ class FMMarkingMenu: NSObject
         
         viewController.presentViewController(markingMenuContentViewController, animated: false)
         {
-            let markingMenuOrigin = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+            let markingMenuOrigin: CGPoint
+            
+            if self.launchMode == .OpenAtScreenCentre
+            {
+                markingMenuOrigin = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+            }
+            else
+            {
+                markingMenuOrigin = locationInView
+            }
+            
             self.markingMenuContentViewController.origin = markingMenuOrigin
             self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems)
         }
