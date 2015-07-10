@@ -21,8 +21,8 @@
 struct FMMarkingMenuItem
 {
     let label: String
-    let subItems: [FMMarkingMenuItem]?
-    let isValueSlider:Bool // TODO menu items and sliders should be two distinct structs with a common protocol
+    let subItems: [FMMarkingMenuItem]?  // subItems trump isValueSlider
+    let isValueSlider:Bool              // TODO menu items and sliders should be two distinct structs with a common protocol
     var valueSliderValue: CGFloat = 0.0
     
     init(label: String, subItems: [FMMarkingMenuItem]? = nil, isValueSlider: Bool = false)

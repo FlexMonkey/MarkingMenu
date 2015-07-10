@@ -59,12 +59,11 @@ class FMMarkingMenuContentViewController: UIViewController
                 valueSliderProgressLayer?.fillColor = nil
                 valueSliderProgressLayer?.lineJoin = kCALineJoinRound
                 valueSliderProgressLayer?.lineCap = kCALineCapRound
-                
-                updateSliderProgressLayer(0)
             }
         }
     }
-    
+    var valueSliderLabel: UILabel?
+    var valueSliderMarkingMenuLayer: CAShapeLayer?
     var valueSliderInitialValue: CGFloat?
     var valueSliderProgressLayer: CAShapeLayer?
     var valueSliderIndex: Int?
@@ -138,9 +137,9 @@ class FMMarkingMenuContentViewController: UIViewController
             }
             else
             {
-                diff = (angle - valueSliderInitialAngle) < -pi ?  (angle - valueSliderInitialAngle) + tau :
-                    
-                    (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
+                diff = (angle - valueSliderInitialAngle) < -pi
+                    ? (angle - valueSliderInitialAngle) + tau
+                    : (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
             }
             
             var normalisedValue = min(max(0, valueSliderInitialValue! + (diff / pi)), 1)
@@ -153,7 +152,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 normalisedValue = 1
             }
             
-            updateSliderProgressLayer(normalisedValue)
+            updateSliderProgressLayer(normalisedValue, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView)
             
             previousSliderValue = normalisedValue
            
@@ -184,11 +183,15 @@ class FMMarkingMenuContentViewController: UIViewController
                     layerLabelTuple.1.removeFromSuperview()
                 }
                 
+                valueSliderLabel = markingMenuLabels[segmentIndex]
+                valueSliderMarkingMenuLayer = markingMenuLayers[segmentIndex]
                 valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
                 previousSliderValue = valueSliderInitialAngle
                 valueSliderInitialAngle = angle
                 
                 displaySlider(segmentIndex)
+                
+                updateSliderProgressLayer(valueSliderInitialValue!, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView)
             }
             else
             {
@@ -202,26 +205,53 @@ class FMMarkingMenuContentViewController: UIViewController
         }
     }
     
-    func updateSliderProgressLayer(normalisedValue: CGFloat)
+    func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint)
     {
-        guard let valueSliderProgressLayer = valueSliderProgressLayer, valueSliderInitialAngle = valueSliderInitialAngle else
+        guard let valueSliderProgressLayer = valueSliderProgressLayer,
+            valueSliderInitialAngle = valueSliderInitialAngle,
+            valueSliderMarkingMenuLayer = valueSliderMarkingMenuLayer,
+            valueSliderIndex = valueSliderIndex,
+            valueSliderLabel = valueSliderLabel else
         {
             return
         }
-   
+
+        // position label above touch location
+        
+        valueSliderLabel.text = markingMenuItems[valueSliderIndex].label + " \(Int(normalisedValue * 100))%"
+        
+        let labelWidth = valueSliderLabel.intrinsicContentSize().width
+        let labelHeight = valueSliderLabel.intrinsicContentSize().height
+        
+        valueSliderLabel.frame = CGRect(x: touchLocation.x - labelWidth / 2,
+            y: touchLocation.y - labelHeight - 20,
+            width: labelWidth,
+            height: labelHeight)
+        
         let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
         let startAngle = tweakedValueSliderInitialAngle - (pi / 2)  + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
-        let endAngle = startAngle + (pi * normalisedValue)
+        
+        // redraw valueSliderMarkingMenuLayer...
+        let endAngle = tweakedValueSliderInitialAngle + (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        
+        let subLayerPath = UIBezierPath()
+        
+        subLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+        
+        valueSliderMarkingMenuLayer.path = subLayerPath.CGPath
+        
+        // draw progress bar...
+        let progressEndAngle = startAngle + (pi * normalisedValue)
         
         valueSliderProgressLayer.lineWidth = 6
         valueSliderProgressLayer.lineDashPattern = [4, 8]
         valueSliderProgressLayer.strokeColor = UIColor.blueColor().CGColor
         
-        let subLayerPath = UIBezierPath()
+        let progressSubLayerPath = UIBezierPath()
         
-        subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+        progressSubLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: progressEndAngle, clockwise: true)
         
-        valueSliderProgressLayer.path = subLayerPath.CGPath
+        valueSliderProgressLayer.path = progressSubLayerPath.CGPath
     }
     
     func displaySlider(segmentIndex: Int)
@@ -384,6 +414,7 @@ class FMMarkingMenuContentViewController: UIViewController
         markingMenuLabels = [UILabel]()
         
         markingMenuLayer.path = nil
+        valueSliderMarkingMenuLayer = nil
     }
 }
 

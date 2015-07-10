@@ -5,6 +5,9 @@
 //  Created by Simon Gladman on 07/06/2015.
 //  Copyright (c) 2015 Simon Gladman. All rights reserved.
 //
+// TODO: double click bug!
+//  add value labels
+//  with slider - label above touch point + progress at toucj distance ???!
 
 import UIKit
 
@@ -78,9 +81,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             filteredImageData = colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         
-        let filteredImage = UIImage(CIImage: filteredImageData)
+        // let filteredImage = UIImage(CIImage: filteredImageData)
         
-        imageView.image = filteredImage
+        // imageView.image = filteredImage
     }
     
     var markingMenuItems: [FMMarkingMenuItem]!
@@ -110,7 +113,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         saturation.valueSliderValue = 0.75;
         contrast.valueSliderValue = 1
         
-        markingMenuItems = [brightness, saturation, contrast, blur, colorEffect] // , distort, photoEffect, halftone, styleize, noFilter]
+        markingMenuItems = [brightness, saturation, contrast, colorEffect, photoEffect, noFilter] // blur, , distort, photoEffect, halftone, styleize, noFilter]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         
