@@ -81,9 +81,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             filteredImageData = colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         
-        // let filteredImage = UIImage(CIImage: filteredImageData)
+        let filteredImage = UIImage(CIImage: filteredImageData)
         
-        // imageView.image = filteredImage
+        imageView.image = filteredImage
     }
     
     var markingMenuItems: [FMMarkingMenuItem]!

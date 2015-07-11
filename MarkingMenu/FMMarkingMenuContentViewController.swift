@@ -218,7 +218,7 @@ class FMMarkingMenuContentViewController: UIViewController
 
         // position label above touch location
         
-        valueSliderLabel.text = markingMenuItems[valueSliderIndex].label + " \(Int(normalisedValue * 100))%"
+        valueSliderLabel.text = " " + markingMenuItems[valueSliderIndex].label + " \(Int(normalisedValue * 100))% "
         
         let labelWidth = valueSliderLabel.intrinsicContentSize().width
         let labelHeight = valueSliderLabel.intrinsicContentSize().height
@@ -238,6 +238,7 @@ class FMMarkingMenuContentViewController: UIViewController
         
         subLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: endAngle, clockwise: true)
         
+        valueSliderMarkingMenuLayer.lineDashPattern = nil
         valueSliderMarkingMenuLayer.path = subLayerPath.CGPath
         
         // draw progress bar...
