@@ -83,11 +83,6 @@ class FMMarkingMenuContentViewController: UIViewController
         selectionLabel.layer.cornerRadius = 4
         view.addSubview(selectionLabel)
         
-        view.layer.shadowColor = UIColor.blackColor().CGColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 0)
-        view.layer.shadowOpacity = 1
-        view.layer.shadowRadius = 2
-        
         markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
         markingMenuLayer.fillColor = nil
         markingMenuLayer.lineWidth = 5
@@ -189,11 +184,26 @@ class FMMarkingMenuContentViewController: UIViewController
                     layerLabelTuple.1.removeFromSuperview()
                 }
                 
+                selectionLabel.alpha = 0
+                
+                view.layer.shadowColor = nil
+                view.layer.shadowOpacity = 0
+                
                 valueSliderLabel = markingMenuLabels[segmentIndex]
                 valueSliderMarkingMenuLayer = markingMenuLayers[segmentIndex]
                 valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
                 previousSliderValue = valueSliderInitialValue
                 valueSliderInitialAngle = angle
+                
+                valueSliderLabel!.layer.shadowColor = UIColor.blackColor().CGColor
+                valueSliderLabel!.layer.shadowOffset = CGSize(width: 0, height: 0)
+                valueSliderLabel!.layer.shadowOpacity = 1
+                valueSliderLabel!.layer.shadowRadius = 2
+                
+                valueSliderMarkingMenuLayer!.shadowColor = UIColor.blackColor().CGColor
+                valueSliderMarkingMenuLayer!.shadowOffset = CGSize(width: 0, height: 0)
+                valueSliderMarkingMenuLayer!.shadowOpacity = 1
+                valueSliderMarkingMenuLayer!.shadowRadius = 2
                 
                 displaySlider(segmentIndex)
                 
@@ -230,12 +240,9 @@ class FMMarkingMenuContentViewController: UIViewController
         let labelHeight = valueSliderLabel.intrinsicContentSize().height
         
         valueSliderLabel.frame = CGRect(x: touchLocation.x - labelWidth / 2,
-            y: touchLocation.y - labelHeight - 20,
+            y: touchLocation.y - labelHeight - 40,
             width: labelWidth,
             height: labelHeight)
-        
-        valueSliderLabel.layer.borderColor = UIColor.darkGrayColor().CGColor
-        valueSliderLabel.layer.borderWidth = 1
         
         let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
         let startAngle = tweakedValueSliderInitialAngle - (pi / 2)  + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
@@ -313,6 +320,11 @@ class FMMarkingMenuContentViewController: UIViewController
     func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
     {
         self.markingMenuItems = markingMenuItems
+        
+        view.layer.shadowColor = UIColor.blackColor().CGColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 0)
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 2
         
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
