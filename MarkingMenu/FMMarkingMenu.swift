@@ -57,7 +57,8 @@ class FMMarkingMenu: NSObject
         
         markingMenuContentViewController.markingMenu = self
         
-        tap = FMMarkingMenuPanGestureRecognizer(target: self, action: "tapHandler:")
+        tap = FMMarkingMenuPanGestureRecognizer(target: self, action: "tapHandler:", markingMenu: self)
+
         view.addGestureRecognizer(tap)
     }
     
@@ -70,7 +71,8 @@ class FMMarkingMenu: NSObject
     {
         if recognizer.state == UIGestureRecognizerState.Began
         {
-            open(recognizer.locationInView(view))
+            // nothing to do here, FMMarkingMenuPanGestureRecognizer
+            // invokes open() on touchesBegan
         }
         else if recognizer.state == UIGestureRecognizerState.Changed
         {
@@ -88,8 +90,8 @@ class FMMarkingMenu: NSObject
         viewController.dismissViewControllerAnimated(false, completion: nil)
     }
     
-    private func open(locationInView: CGPoint)
-    {
+    func open(locationInView: CGPoint)
+    {        
         markingMenuContentViewController.modalPresentationStyle = UIModalPresentationStyle.OverCurrentContext
         markingMenuContentViewController.modalTransitionStyle = UIModalTransitionStyle.CrossDissolve
         

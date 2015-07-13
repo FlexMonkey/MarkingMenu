@@ -87,6 +87,12 @@ class FMMarkingMenuContentViewController: UIViewController
         view.layer.shadowOffset = CGSize(width: 0, height: 0)
         view.layer.shadowOpacity = 1
         view.layer.shadowRadius = 2
+        
+        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
+        markingMenuLayer.fillColor = nil
+        markingMenuLayer.lineWidth = 5
+        markingMenuLayer.lineJoin = kCALineJoinRound
+        markingMenuLayer.lineCap = kCALineCapRound
     }
 
     required init(coder aDecoder: NSCoder)
@@ -312,12 +318,6 @@ class FMMarkingMenuContentViewController: UIViewController
         
         let sectionArc = getSectionArc()
         let paddingAngle = tau * 0.01
-        
-        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
-        markingMenuLayer.fillColor = nil
-        markingMenuLayer.lineWidth = 5
-        markingMenuLayer.lineJoin = kCALineJoinRound
-        markingMenuLayer.lineCap = kCALineCapRound
         
         valueSliderInitialAngle = nil
         
