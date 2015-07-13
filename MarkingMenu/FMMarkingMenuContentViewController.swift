@@ -186,7 +186,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 valueSliderLabel = markingMenuLabels[segmentIndex]
                 valueSliderMarkingMenuLayer = markingMenuLayers[segmentIndex]
                 valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
-                previousSliderValue = valueSliderInitialAngle
+                previousSliderValue = valueSliderInitialValue
                 valueSliderInitialAngle = angle
                 
                 displaySlider(segmentIndex)
@@ -218,7 +218,7 @@ class FMMarkingMenuContentViewController: UIViewController
 
         // position label above touch location
         
-        valueSliderLabel.text = markingMenuItems[valueSliderIndex].label + " \(Int(normalisedValue * 100))%"
+        valueSliderLabel.text = " " + markingMenuItems[valueSliderIndex].label + " \(Int(normalisedValue * 100))% "
         
         let labelWidth = valueSliderLabel.intrinsicContentSize().width
         let labelHeight = valueSliderLabel.intrinsicContentSize().height
@@ -227,6 +227,9 @@ class FMMarkingMenuContentViewController: UIViewController
             y: touchLocation.y - labelHeight - 20,
             width: labelWidth,
             height: labelHeight)
+        
+        valueSliderLabel.layer.borderColor = UIColor.darkGrayColor().CGColor
+        valueSliderLabel.layer.borderWidth = 1
         
         let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
         let startAngle = tweakedValueSliderInitialAngle - (pi / 2)  + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
@@ -237,7 +240,8 @@ class FMMarkingMenuContentViewController: UIViewController
         let subLayerPath = UIBezierPath()
         
         subLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-        
+
+        valueSliderMarkingMenuLayer.lineDashPattern = nil
         valueSliderMarkingMenuLayer.path = subLayerPath.CGPath
         
         // draw progress bar...
@@ -359,7 +363,8 @@ class FMMarkingMenuContentViewController: UIViewController
             let midAngle = (startAngle + endAngle) / 2
             
             let label = UILabel()
-            label.text = " " + markingMenuItems[i].label + " "
+
+            label.text = " " + markingMenuItems[i].label + (markingMenuItems[i].isValueSlider ? " \(Int(markingMenuItems[i].valueSliderValue * 100))% " : " ")
             
             markingMenuLabels.append(label)
             
