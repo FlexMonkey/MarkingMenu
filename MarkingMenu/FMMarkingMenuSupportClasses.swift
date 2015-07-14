@@ -22,14 +22,21 @@ class FMMarkingMenuItem
 {
     let label: String
     let subItems: [FMMarkingMenuItem]?  // subItems trump isValueSlider
-    let isValueSlider:Bool              // TODO menu items and sliders should be two distinct structs with a common protocol
+    let isValueSlider:Bool
     var valueSliderValue: CGFloat = 0.0
     
-    init(label: String, subItems: [FMMarkingMenuItem]? = nil, isValueSlider: Bool = false)
+    required init(label: String, subItems: [FMMarkingMenuItem]? = nil, isValueSlider: Bool = false)
     {
         self.label = label
         self.subItems = subItems
         self.isValueSlider = isValueSlider
+    }
+    
+    convenience init(label: String, valueSliderValue: CGFloat)
+    {
+        self.init(label: label, subItems: [], isValueSlider: true)
+        
+        self.valueSliderValue = valueSliderValue
     }
 }
 

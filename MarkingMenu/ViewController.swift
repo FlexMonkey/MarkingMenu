@@ -84,7 +84,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     
     func createMarkingMenu()
     {
-        let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", subItems: [], isValueSlider: true)
+        let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0.5)
         
         let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "CIGaussianBlur"), FMMarkingMenuItem(label: "CISharpenLuminance"), FMMarkingMenuItem(label: "CIUnsharpMask"), blurAmountSlider])
         
@@ -102,17 +102,14 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let colorTransform = FMMarkingMenuItem(label: "Color Adjust", subItems: [photoEffect, colorEffect], isValueSlider: false)
         
-        let testSlider = FMMarkingMenuItem(label: "Test Slider", subItems: [], isValueSlider: true)
+        let testSlider = FMMarkingMenuItem(label: "Test Slider", valueSliderValue: 0.25)
         
         let blurAndStylize = FMMarkingMenuItem(label: "Blur & Styleize", subItems: [testSlider, blur, distort, halftone,  styleize])
     
-        var brightness = FMMarkingMenuItem(label: "Brightness", subItems: [], isValueSlider: true)
-        var saturation = FMMarkingMenuItem(label: "Saturation", subItems: [], isValueSlider: true)
-        var contrast = FMMarkingMenuItem(label: "Contrast", subItems: [], isValueSlider: true)
+        let brightness = FMMarkingMenuItem(label: "Brightness", valueSliderValue: 0)
+        let saturation = FMMarkingMenuItem(label: "Saturation", valueSliderValue: 0.75)
+        let contrast = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 1)
         
-        brightness.valueSliderValue = 0
-        saturation.valueSliderValue = 0.75;
-        contrast.valueSliderValue = 1
         
         markingMenuItems = [brightness, saturation, contrast, colorTransform, blurAndStylize, noFilter]
         
