@@ -83,10 +83,11 @@ class FMMarkingMenuContentViewController: UIViewController
         selectionLabel.layer.cornerRadius = 4
         view.addSubview(selectionLabel)
         
-        view.layer.shadowColor = UIColor.blackColor().CGColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 0)
-        view.layer.shadowOpacity = 1
-        view.layer.shadowRadius = 2
+        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
+        markingMenuLayer.fillColor = nil
+        markingMenuLayer.lineWidth = 5
+        markingMenuLayer.lineJoin = kCALineJoinRound
+        markingMenuLayer.lineCap = kCALineCapRound
     }
 
     required init(coder aDecoder: NSCoder)
@@ -183,11 +184,26 @@ class FMMarkingMenuContentViewController: UIViewController
                     layerLabelTuple.1.removeFromSuperview()
                 }
                 
+                selectionLabel.alpha = 0
+                
+                view.layer.shadowColor = nil
+                view.layer.shadowOpacity = 0
+                
                 valueSliderLabel = markingMenuLabels[segmentIndex]
                 valueSliderMarkingMenuLayer = markingMenuLayers[segmentIndex]
                 valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
-                previousSliderValue = valueSliderInitialAngle
+                previousSliderValue = valueSliderInitialValue
                 valueSliderInitialAngle = angle
+                
+                valueSliderLabel!.layer.shadowColor = UIColor.blackColor().CGColor
+                valueSliderLabel!.layer.shadowOffset = CGSize(width: 0, height: 0)
+                valueSliderLabel!.layer.shadowOpacity = 1
+                valueSliderLabel!.layer.shadowRadius = 2
+                
+                valueSliderMarkingMenuLayer!.shadowColor = UIColor.blackColor().CGColor
+                valueSliderMarkingMenuLayer!.shadowOffset = CGSize(width: 0, height: 0)
+                valueSliderMarkingMenuLayer!.shadowOpacity = 1
+                valueSliderMarkingMenuLayer!.shadowRadius = 2
                 
                 displaySlider(segmentIndex)
                 
@@ -224,7 +240,7 @@ class FMMarkingMenuContentViewController: UIViewController
         let labelHeight = valueSliderLabel.intrinsicContentSize().height
         
         valueSliderLabel.frame = CGRect(x: touchLocation.x - labelWidth / 2,
-            y: touchLocation.y - labelHeight - 20,
+            y: touchLocation.y - labelHeight - 40,
             width: labelWidth,
             height: labelHeight)
         
@@ -237,7 +253,7 @@ class FMMarkingMenuContentViewController: UIViewController
         let subLayerPath = UIBezierPath()
         
         subLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-        
+
         valueSliderMarkingMenuLayer.lineDashPattern = nil
         valueSliderMarkingMenuLayer.path = subLayerPath.CGPath
         
@@ -305,16 +321,15 @@ class FMMarkingMenuContentViewController: UIViewController
     {
         self.markingMenuItems = markingMenuItems
         
+        view.layer.shadowColor = UIColor.blackColor().CGColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 0)
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 2
+        
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
         let sectionArc = getSectionArc()
         let paddingAngle = tau * 0.01
-        
-        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
-        markingMenuLayer.fillColor = nil
-        markingMenuLayer.lineWidth = 5
-        markingMenuLayer.lineJoin = kCALineJoinRound
-        markingMenuLayer.lineCap = kCALineCapRound
         
         valueSliderInitialAngle = nil
         
@@ -360,7 +375,8 @@ class FMMarkingMenuContentViewController: UIViewController
             let midAngle = (startAngle + endAngle) / 2
             
             let label = UILabel()
-            label.text = " " + markingMenuItems[i].label + " "
+
+            label.text = " " + markingMenuItems[i].label + (markingMenuItems[i].isValueSlider ? " \(Int(markingMenuItems[i].valueSliderValue * 100))% " : " ")
             
             markingMenuLabels.append(label)
             

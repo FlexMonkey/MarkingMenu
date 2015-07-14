@@ -104,6 +104,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "CIBloom"), FMMarkingMenuItem(label: "CIGloom"), FMMarkingMenuItem(label: "CIPixellate")])
         
+        let colorTransform = FMMarkingMenuItem(label: "Color Adjust", subItems: [photoEffect, colorEffect], isValueSlider: false)
+        
+        let blurAndStylize = FMMarkingMenuItem(label: "Blur & Styleize", subItems: [blur, distort, halftone,  styleize])
     
         var brightness = FMMarkingMenuItem(label: "Brightness", subItems: [], isValueSlider: true)
         var saturation = FMMarkingMenuItem(label: "Saturation", subItems: [], isValueSlider: true)
@@ -113,7 +116,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         saturation.valueSliderValue = 0.75;
         contrast.valueSliderValue = 1
         
-        markingMenuItems = [brightness, saturation, contrast, colorEffect, photoEffect, noFilter] // blur, , distort, photoEffect, halftone, styleize, noFilter]
+        markingMenuItems = [brightness, saturation, contrast, colorTransform, blurAndStylize, noFilter]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         

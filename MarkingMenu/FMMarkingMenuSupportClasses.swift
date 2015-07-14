@@ -56,12 +56,27 @@ protocol FMMarkingMenuDelegate: NSObjectProtocol
 // with the first touch down, i.e. without requiring any movement.
 class FMMarkingMenuPanGestureRecognizer: UIPanGestureRecognizer
 {
+    required init(target: AnyObject?, action: Selector, markingMenu: FMMarkingMenu)
+    {
+        self.markingMenu = markingMenu
+        
+        super.init(target: target, action: action)
+    }
+    
+    let markingMenu: FMMarkingMenu
+    
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent)
     {
+        let locationInView = touches.first!.locationInView(markingMenu.view)
+        
+        // invoking open on the marking menu gets it to open immediately
+        markingMenu.open(locationInView)
+        
         super.touchesBegan(touches, withEvent: event)
         
         state = UIGestureRecognizerState.Began
     }
+    
 }
 
 extension CGPoint
