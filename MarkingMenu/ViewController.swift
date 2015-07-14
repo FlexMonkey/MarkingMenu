@@ -5,9 +5,7 @@
 //  Created by Simon Gladman on 07/06/2015.
 //  Copyright (c) 2015 Simon Gladman. All rights reserved.
 //
-// TODO: double click bug!
-//  add value labels
-//  with slider - label above touch point + progress at toucj distance ???!
+// check nested value sliders!
 
 import UIKit
 
@@ -48,12 +46,8 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         currentFilterLabel.frame = CGRect(x: 5, y: view.frame.height - currentFilterLabel.intrinsicContentSize().height - 5, width: currentFilterLabel.intrinsicContentSize().width, height: currentFilterLabel.intrinsicContentSize().height)
     }
     
-    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, markingMenuItemIndex: Int, newValue: CGFloat)
+    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, newValue: CGFloat)
     {
-        markingMenuItems[markingMenuItemIndex].valueSliderValue = newValue
-        
-        // print("setting \(markingMenuItemIndex) to \(newValue)")
-        
         applyFilter()
     }
     
@@ -81,16 +75,18 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             filteredImageData = colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         
-        let filteredImage = UIImage(CIImage: filteredImageData)
+        // let filteredImage = UIImage(CIImage: filteredImageData)
         
-        imageView.image = filteredImage
+        // imageView.image = filteredImage
     }
     
     var markingMenuItems: [FMMarkingMenuItem]!
     
     func createMarkingMenu()
     {
-        let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "CIGaussianBlur"), FMMarkingMenuItem(label: "CISharpenLuminance"), FMMarkingMenuItem(label: "CIUnsharpMask")])
+        let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", subItems: [], isValueSlider: true)
+        
+        let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "CIGaussianBlur"), FMMarkingMenuItem(label: "CISharpenLuminance"), FMMarkingMenuItem(label: "CIUnsharpMask"), blurAmountSlider])
         
         let noFilter = FMMarkingMenuItem(label: "No Filter")
         
@@ -106,7 +102,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         let colorTransform = FMMarkingMenuItem(label: "Color Adjust", subItems: [photoEffect, colorEffect], isValueSlider: false)
         
-        let blurAndStylize = FMMarkingMenuItem(label: "Blur & Styleize", subItems: [blur, distort, halftone,  styleize])
+        let testSlider = FMMarkingMenuItem(label: "Test Slider", subItems: [], isValueSlider: true)
+        
+        let blurAndStylize = FMMarkingMenuItem(label: "Blur & Styleize", subItems: [testSlider, blur, distort, halftone,  styleize])
     
         var brightness = FMMarkingMenuItem(label: "Brightness", subItems: [], isValueSlider: true)
         var saturation = FMMarkingMenuItem(label: "Saturation", subItems: [], isValueSlider: true)

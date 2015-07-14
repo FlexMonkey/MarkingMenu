@@ -18,7 +18,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-struct FMMarkingMenuItem
+class FMMarkingMenuItem
 {
     let label: String
     let subItems: [FMMarkingMenuItem]?  // subItems trump isValueSlider
@@ -49,7 +49,7 @@ protocol FMMarkingMenuDelegate: NSObjectProtocol
 {
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
     
-    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, markingMenuItemIndex: Int, newValue: CGFloat)
+    func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, newValue: CGFloat)
 }
 
 // An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began
@@ -88,4 +88,12 @@ extension CGPoint
         
         return sqrt(xSquare + ySquare)
     }
+}
+
+func applyDefaultMarkingMenuShadowToLayer(target: CALayer)
+{
+    target.shadowColor = UIColor.blackColor().CGColor
+    target.shadowOffset = CGSize(width: 0, height: 0)
+    target.shadowOpacity = 1
+    target.shadowRadius = 2
 }
