@@ -75,9 +75,9 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             filteredImageData = colorControls!.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         
-        // let filteredImage = UIImage(CIImage: filteredImageData)
+        let filteredImage = UIImage(CIImage: filteredImageData)
         
-        // imageView.image = filteredImage
+        imageView.image = filteredImage
     }
     
     var markingMenuItems: [FMMarkingMenuItem]!
@@ -86,21 +86,46 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     {
         let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0.5)
         
-        let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[FMMarkingMenuItem(label: "CIGaussianBlur"), FMMarkingMenuItem(label: "CISharpenLuminance"), FMMarkingMenuItem(label: "CIUnsharpMask"), blurAmountSlider])
+        let blur = FMMarkingMenuItem(label: "Blur & Sharpen", subItems:[
+            FMMarkingMenuItem(label: "CIGaussianBlur"),
+            FMMarkingMenuItem(label: "CISharpenLuminance"),
+            FMMarkingMenuItem(label: "CIUnsharpMask"),
+            blurAmountSlider])
         
         let noFilter = FMMarkingMenuItem(label: "No Filter")
         
-        let distort = FMMarkingMenuItem(label: "Distort", subItems:[FMMarkingMenuItem(label: "CIPinchDistortion"), FMMarkingMenuItem(label: "CITwirlDistortion"), FMMarkingMenuItem(label: "CIVortexDistortion")])
+        let distort = FMMarkingMenuItem(label: "Distort", subItems:[
+            FMMarkingMenuItem(label: "CIPinchDistortion"),
+            FMMarkingMenuItem(label: "CITwirlDistortion"),
+            FMMarkingMenuItem(label: "CIVortexDistortion")])
         
-        let colorEffect = FMMarkingMenuItem(label: "Color Effect", subItems:[FMMarkingMenuItem(label: "CIColorInvert"), FMMarkingMenuItem(label: "CIColorMonochrome"), FMMarkingMenuItem(label: "CIColorPosterize"), FMMarkingMenuItem(label: "CIFalseColor"), FMMarkingMenuItem(label: "CISepiaTone")])
+        let colorEffect = FMMarkingMenuItem(label: "Color Effect", subItems:[
+            FMMarkingMenuItem(label: "CIColorInvert"),
+            FMMarkingMenuItem(label: "CIColorMonochrome"),
+            FMMarkingMenuItem(label: "CIColorPosterize"),
+            FMMarkingMenuItem(label: "CIFalseColor"),
+            FMMarkingMenuItem(label: "CISepiaTone")])
         
-        let photoEffect = FMMarkingMenuItem(label: "Photo Effect", subItems:[FMMarkingMenuItem(label: "CIPhotoEffectChrome"), FMMarkingMenuItem(label: "CIPhotoEffectFade"), FMMarkingMenuItem(label: "CIPhotoEffectInstant"), FMMarkingMenuItem(label: "CIPhotoEffectNoir"), FMMarkingMenuItem(label: "CIPhotoEffectTonal"), FMMarkingMenuItem(label: "CIPhotoEffectTransfer")])
+        let photoEffect = FMMarkingMenuItem(label: "Photo Effect", subItems:[
+            FMMarkingMenuItem(label: "CIPhotoEffectChrome"),
+            FMMarkingMenuItem(label: "CIPhotoEffectFade"),
+            FMMarkingMenuItem(label: "CIPhotoEffectInstant"),
+            FMMarkingMenuItem(label: "CIPhotoEffectNoir"),
+            FMMarkingMenuItem(label: "CIPhotoEffectTonal"),
+            FMMarkingMenuItem(label: "CIPhotoEffectTransfer")])
         
-        let halftone = FMMarkingMenuItem(label: "Halftone", subItems:[FMMarkingMenuItem(label: "CICircularScreen"), FMMarkingMenuItem(label: "CIDotScreen"), FMMarkingMenuItem(label: "CIHatchedScreen"), FMMarkingMenuItem(label: "CILineScreen")])
+        let halftone = FMMarkingMenuItem(label: "Halftone", subItems:[
+            FMMarkingMenuItem(label: "CICircularScreen"),
+            FMMarkingMenuItem(label: "CIDotScreen"),
+            FMMarkingMenuItem(label: "CIHatchedScreen"),
+            FMMarkingMenuItem(label: "CILineScreen")])
         
-        let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[FMMarkingMenuItem(label: "CIBloom"), FMMarkingMenuItem(label: "CIGloom"), FMMarkingMenuItem(label: "CIPixellate")])
+        let styleize = FMMarkingMenuItem(label: "Stylize", subItems:[
+            FMMarkingMenuItem(label: "CIBloom"),
+            FMMarkingMenuItem(label: "CIGloom"),
+            FMMarkingMenuItem(label: "CIPixellate")])
         
-        let colorTransform = FMMarkingMenuItem(label: "Color Adjust", subItems: [photoEffect, colorEffect], isValueSlider: false)
+        let colorTransform = FMMarkingMenuItem(label: "Color Adjust", subItems: [photoEffect, colorEffect])
         
         let testSlider = FMMarkingMenuItem(label: "Test Slider", valueSliderValue: 0.25)
         
