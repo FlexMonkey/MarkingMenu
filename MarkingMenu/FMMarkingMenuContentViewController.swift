@@ -60,11 +60,11 @@ class FMMarkingMenuContentViewController: UIViewController
             }
         }
     }
+    var valueSliderIndex: Int?
     var valueSliderLabel: UILabel?
     var valueSliderMarkingMenuLayer: CAShapeLayer?
     var valueSliderInitialValue: CGFloat?
     var valueSliderProgressLayer: CAShapeLayer?
-    var valueSliderIndex: Int?
     var previousSliderValue:CGFloat?
     
     weak var markingMenu: FMMarkingMenu!
@@ -153,13 +153,12 @@ class FMMarkingMenuContentViewController: UIViewController
            
             markingMenuDelegate?.FMMarkingMenuValueSliderChange(markingMenu!, markingMenuItem: markingMenuItems[valueSliderIndex!], newValue: normalisedValue)
         }
-        else if CGFloat(distanceToMenuOrigin) > radius && segmentIndex < markingMenu!.markingMenuItems.count
+        else if CGFloat(distanceToMenuOrigin) > radius && segmentIndex < markingMenuItems.count
         {
             if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0 && valueSliderInitialAngle == nil
             {
-                print(valueSliderInitialAngle)
-                
                 // open sub menu...
+                
                 markingMenuLayers.map({ $0.opacity = $0.opacity * 0.15 })
                 markingMenuLabels.map(){ $0.alpha = $0.alpha * 0.15 }
                 
@@ -191,6 +190,7 @@ class FMMarkingMenuContentViewController: UIViewController
             else
             {
                 // execute sub menu item...
+                
                 markingMenuDelegate?.FMMarkingMenuItemSelected(markingMenu!, markingMenuItem: markingMenuItems[segmentIndex])
                 
                 markingMenu.close()
@@ -340,8 +340,8 @@ class FMMarkingMenuContentViewController: UIViewController
             let midAngle = (startAngle + endAngle) / 2
             
             let label = UILabel()
-
             label.text = labelTextForMarkingMenuItem(markingMenuItemIndex: i)
+            label.textColor = markingMenuItems[i].isSelected ? UIColor.redColor() : UIColor.blueColor()
             
             markingMenuLabels.append(label)
             

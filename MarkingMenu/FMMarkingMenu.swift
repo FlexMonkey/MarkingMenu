@@ -116,6 +116,40 @@ class FMMarkingMenu: NSObject
             self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems)
         }
     }
+    
+    // MARK: Utilities...
+    
+    static func setExclusivelySelected(markingMenuItem: FMMarkingMenuItem, markingMenuItems: [FMMarkingMenuItem])
+    {
+        let items = getMenuItemsByCategory(markingMenuItem.category!, markingMenuItems: markingMenuItems)
+        
+        for item in items where item !== markingMenuItem
+        {
+            item.isSelected = false
+        }
+        
+        markingMenuItem.isSelected = true
+    }
+    
+    static func getMenuItemsByCategory(category:String, markingMenuItems: [FMMarkingMenuItem]) -> [FMMarkingMenuItem]
+    {
+        var returnArray = [FMMarkingMenuItem]()
+        
+        for item in markingMenuItems
+        {
+            if item.category == category
+            {
+                returnArray.append(item)
+            }
+            
+            if let subItems = item.subItems
+            {
+                returnArray.extend(FMMarkingMenu.getMenuItemsByCategory(category, markingMenuItems: subItems))
+            }
+        }
+        
+        return returnArray
+    }
 }
 
 

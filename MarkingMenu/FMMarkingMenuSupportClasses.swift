@@ -23,7 +23,14 @@ class FMMarkingMenuItem
     let label: String
     let subItems: [FMMarkingMenuItem]?  // subItems trump isValueSlider
     let isValueSlider:Bool
+    
     var valueSliderValue: CGFloat = 0.0
+    
+    // Colors the menu item to indicate selection. Selection logic needs to be implemented in host application
+    var isSelected: Bool = false
+    
+    // Optional category for use in host application
+    var category: String?
     
     required init(label: String, subItems: [FMMarkingMenuItem]? = nil, isValueSlider: Bool = false)
     {
@@ -37,6 +44,14 @@ class FMMarkingMenuItem
         self.init(label: label, subItems: [], isValueSlider: true)
         
         self.valueSliderValue = valueSliderValue
+    }
+    
+    convenience init(label: String, category: String, isSelected: Bool = false)
+    {
+        self.init(label: label, subItems: [], isValueSlider: false)
+        
+        self.category = category
+        self.isSelected = isSelected
     }
 }
 
