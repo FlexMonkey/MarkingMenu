@@ -4,8 +4,7 @@
 //
 //  Created by Simon Gladman on 07/06/2015.
 //  Copyright (c) 2015 Simon Gladman. All rights reserved.
-//
-// check nested value sliders!
+
 
 import UIKit
 
@@ -14,11 +13,20 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let photo = UIImage(named: "photo.jpg")!
     let imageView = UIImageView()
     var markingMenu: FMMarkingMenu!
+
     
-    let ciContextFast = CIContext(EAGLContext: EAGLContext(API: EAGLRenderingAPI.OpenGLES2), options: [kCIContextWorkingColorSpace: NSNull()])
+    var markingMenuItems: [FMMarkingMenuItem]!
     
-    let currentFilterLabel = UILabel()
-    var filterName: String?
+    let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0)
+    let brightnessSlider = FMMarkingMenuItem(label: "Brightness", valueSliderValue: 0)
+    let saturationSlider = FMMarkingMenuItem(label: "Saturation", valueSliderValue: 0.75)
+    let contrastSlider = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 1)
+    let sharpenAmountSlider = FMMarkingMenuItem(label: "Sharpen Amount", valueSliderValue: 0.5)
+    
+    let queue = dispatch_queue_create("FilterUpdateQueue", nil)
+    var busy =  false
+    var changePending = false
+
     
     override func viewDidLoad()
     {
@@ -29,45 +37,132 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
 
         view.addSubview(imageView)
-        view.addSubview(currentFilterLabel)
         
-        imageView.image = photo
+        updateFilters()
     }
+    
+    var blurFilter: FilterNames = FilterNames.CIGaussianBlur
+    var sharpenFilter: FilterNames = FilterNames.CISharpenLuminance
+    var blurAmount: CGFloat = 0
     
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
     {
-        if markingMenuItem.category != nil
+        guard let category = FilterCategories(rawValue: markingMenuItem.category!),
+            filterName = FilterNames(rawValue: markingMenuItem.label) else
         {
-            FMMarkingMenu.setExclusivelySelected(markingMenuItem, markingMenuItems: markingMenuItems)
+            return
         }
+        
+        FMMarkingMenu.setExclusivelySelected(markingMenuItem, markingMenuItems: markingMenuItems)
+        
+        if category == FilterCategories.Blur
+        {
+            blurFilter = filterName
+        }
+        else if category == FilterCategories.Sharpen
+        {
+            sharpenFilter = filterName
+        }
+        
+        updateFilters()
     }
-    
-
     
     func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, newValue: CGFloat)
     {
-
+        updateFilters()
     }
 
-    var markingMenuItems: [FMMarkingMenuItem]!
+    func updateFilters()
+    {
+        guard !busy else
+        {
+            changePending = true
+    
+            return
+        }
+        
+        busy = true
+        
+        dispatch_async(queue)
+        {
+            let filteredImage = self.executeFilters()
+            
+            dispatch_async(dispatch_get_main_queue())
+            {
+                self.busy = false
+                self.imageView.image = filteredImage
+                
+                if self.changePending
+                {
+                    self.changePending = false
+                    self.updateFilters()
+                }
+            }
+        }
+    }
+    
+    let colorControlsFilter = CIFilter(name: "CIColorControls")!
+    var ciBlurFilter: CIFilter = CIFilter(name: "CIGaussianBlur")!
+    var ciSharpenFilter: CIFilter = CIFilter(name: "CISharpenLuminance")!
+    
+    func executeFilters() -> UIImage
+    {
+        if ciBlurFilter.name != blurFilter.rawValue
+        {
+            ciBlurFilter = CIFilter(name: blurFilter.rawValue)!
+        }
+        
+        ciBlurFilter.setValue(CIImage(image: photo), forKey: kCIInputImageKey)
+        ciBlurFilter.setValue(blurAmountSlider.valueSliderValue * 10, forKey: "inputRadius")
+        
+        // --
+
+        colorControlsFilter.setValue(ciBlurFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
+        colorControlsFilter.setValue(brightnessSlider.valueSliderValue, forKey: kCIInputBrightnessKey)
+        colorControlsFilter.setValue(saturationSlider.valueSliderValue, forKey: kCIInputSaturationKey)
+        colorControlsFilter.setValue(contrastSlider.valueSliderValue, forKey: kCIInputContrastKey)
+        
+        // --
+        
+        if ciSharpenFilter.name != sharpenFilter.rawValue
+        {
+            ciSharpenFilter = CIFilter(name: sharpenFilter.rawValue)!
+        }
+        
+        ciSharpenFilter.setValue(colorControlsFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
+        
+        if ciSharpenFilter.name == FilterNames.CISharpenLuminance.rawValue
+        {
+            ciSharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputSharpness")
+        }
+        else if ciSharpenFilter.name == FilterNames.CIUnsharpMask.rawValue
+        {
+            ciSharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputIntensity")
+        }
+        
+        // --
+        
+        let filteredImageData = ciSharpenFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+        
+        let filteredImage = UIImage(CIImage: filteredImageData)
+        
+        return filteredImage
+    }
+    
     
     func createMarkingMenu()
     {
-        let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0.5)
-        
         let blurTopLevel = FMMarkingMenuItem(label: FilterCategories.Blur.rawValue, subItems:[
-            FMMarkingMenuItem(label: "Gaussian", category: FilterCategories.Blur.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: "Tent", category: FilterCategories.Blur.rawValue),
-            FMMarkingMenuItem(label: "Box", category: FilterCategories.Blur.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIGaussianBlur.rawValue, category: FilterCategories.Blur.rawValue, isSelected: true),
+            FMMarkingMenuItem(label: FilterNames.CIBoxBlur.rawValue, category: FilterCategories.Blur.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIDiscBlur.rawValue, category: FilterCategories.Blur.rawValue),
             blurAmountSlider])
     
         // --
-        
-        let sharpenAmountSlider = FMMarkingMenuItem(label: "Sharpen Amount", valueSliderValue: 0.5)
-        
+      
         let sharpenTopLevel = FMMarkingMenuItem(label: FilterCategories.Sharpen.rawValue, subItems:[
-            FMMarkingMenuItem(label: "Sharpen Luminance", category: FilterCategories.Sharpen.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: "Unsharp Mask", category: FilterCategories.Sharpen.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CISharpenLuminance.rawValue, category: FilterCategories.Sharpen.rawValue, isSelected: true),
+            FMMarkingMenuItem(label: FilterNames.CIUnsharpMask.rawValue, category: FilterCategories.Sharpen.rawValue),
             sharpenAmountSlider])
     
         // --
@@ -89,22 +184,18 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             FMMarkingMenuItem(label: "Tonal", category: FilterCategories.PhotoEffect.rawValue),
             FMMarkingMenuItem(label: "Transfer", category: FilterCategories.PhotoEffect.rawValue)])
 
-        let brightness = FMMarkingMenuItem(label: "Brightness", valueSliderValue: 0)
-        let saturation = FMMarkingMenuItem(label: "Saturation", valueSliderValue: 0.75)
-        let contrast = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 1)
+
         
-        let colorTransformTopLevel = FMMarkingMenuItem(label: "Color Adjust", subItems: [brightness, saturation, contrast, photoEffect, colorEffect])
+        let colorTransformTopLevel = FMMarkingMenuItem(label: "Color Adjust", subItems: [
+            brightnessSlider,
+            saturationSlider,
+            contrastSlider,
+            photoEffect,
+            colorEffect])
         
         // --
-        
-        let halftoneTopLevel = FMMarkingMenuItem(label: FilterCategories.Halftone.rawValue, subItems:[
-            FMMarkingMenuItem(label: "None", category: FilterCategories.Halftone.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: "CICircularScreen", category: FilterCategories.Halftone.rawValue),
-            FMMarkingMenuItem(label: "CIDotScreen", category: FilterCategories.Halftone.rawValue),
-            FMMarkingMenuItem(label: "CIHatchedScreen", category: FilterCategories.Halftone.rawValue),
-            FMMarkingMenuItem(label: "CILineScreen", category: FilterCategories.Halftone.rawValue)])
-
-        markingMenuItems = [blurTopLevel, sharpenTopLevel, colorTransformTopLevel, halftoneTopLevel]
+    
+        markingMenuItems = [blurTopLevel, sharpenTopLevel, colorTransformTopLevel]
         
         markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
         
@@ -127,6 +218,16 @@ enum FilterCategories: String
     case ColorEffect = "Color Effect"
     case Sharpen
     case Blur
+}
+
+enum FilterNames: String
+{
+    case CIGaussianBlur
+    case CIDiscBlur
+    case CIBoxBlur
+    
+    case CISharpenLuminance
+    case CIUnsharpMask
 }
 
 
