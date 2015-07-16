@@ -10,23 +10,29 @@ import UIKit
 
 class ViewController: UIViewController, FMMarkingMenuDelegate
 {
-    let photo = UIImage(named: "photo.jpg")!
+    let photo = CIImage(image: UIImage(named: "photo.jpg")!)
     let imageView = UIImageView()
     var markingMenu: FMMarkingMenu!
 
     
     var markingMenuItems: [FMMarkingMenuItem]!
     
+    let brightnessSlider = FMMarkingMenuItem(label: "Brightness", valueSliderValue: 0.5)
+    let saturationSlider = FMMarkingMenuItem(label: "Saturation", valueSliderValue: 0.5)
+    let contrastSlider = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 0.5)
+    
     let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0)
-    let brightnessSlider = FMMarkingMenuItem(label: "Brightness", valueSliderValue: 0)
-    let saturationSlider = FMMarkingMenuItem(label: "Saturation", valueSliderValue: 0.75)
-    let contrastSlider = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 1)
     let sharpenAmountSlider = FMMarkingMenuItem(label: "Sharpen Amount", valueSliderValue: 0.5)
     
     let queue = dispatch_queue_create("FilterUpdateQueue", nil)
     var busy =  false
     var changePending = false
 
+    let colorControlsFilter = CIFilter(name: "CIColorControls")!
+    var blurFilter: CIFilter = CIFilter(name: FilterNames.CIGaussianBlur.rawValue)!
+    var sharpenFilter: CIFilter = CIFilter(name: FilterNames.CISharpenLuminance.rawValue)!
+    var photoEffectFilter: CIFilter?
+    var colorEffectFilter: CIFilter?
     
     override func viewDidLoad()
     {
@@ -41,29 +47,55 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         updateFilters()
     }
     
-    var blurFilter: FilterNames = FilterNames.CIGaussianBlur
-    var sharpenFilter: FilterNames = FilterNames.CISharpenLuminance
-    var blurAmount: CGFloat = 0
-    
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
     {
         guard let category = FilterCategories(rawValue: markingMenuItem.category!),
-            filterName = FilterNames(rawValue: markingMenuItem.label) else
+            filterName = FilterNames(rawValue: markingMenuItem.label)?.rawValue else
         {
             return
         }
         
         FMMarkingMenu.setExclusivelySelected(markingMenuItem, markingMenuItems: markingMenuItems)
         
-        if category == FilterCategories.Blur
+        switch category
         {
-            blurFilter = filterName
+        case FilterCategories.Blur:
+            
+            if blurFilter.name != filterName && CIFilter.filterNamesInCategory(kCICategoryBlur).indexOf(filterName) >= 0
+            {
+                blurFilter = CIFilter(name: filterName)!
+            }
+            
+        case FilterCategories.Sharpen:
+            
+            if sharpenFilter.name != filterName
+            {
+                sharpenFilter = CIFilter(name: filterName)!
+            }
+            
+        case FilterCategories.PhotoEffect:
+            
+            if photoEffectFilter?.name != filterName && CIFilter.filterNamesInCategory(kCICategoryColorEffect).indexOf(filterName) >= 0
+            {
+                photoEffectFilter = CIFilter(name: filterName)!
+            }
+            else
+            {
+                photoEffectFilter = nil
+            }
+            
+        case FilterCategories.ColorEffect:
+            
+            if colorEffectFilter?.name != filterName && CIFilter.filterNamesInCategory(kCICategoryColorEffect).indexOf(filterName) >= 0
+            {
+                colorEffectFilter = CIFilter(name: filterName)!
+            }
+            else
+            {
+                colorEffectFilter = nil
+            }
         }
-        else if category == FilterCategories.Sharpen
-        {
-            sharpenFilter = filterName
-        }
-        
+     
         updateFilters()
     }
     
@@ -101,52 +133,79 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         }
     }
     
-    let colorControlsFilter = CIFilter(name: "CIColorControls")!
-    var ciBlurFilter: CIFilter = CIFilter(name: "CIGaussianBlur")!
-    var ciSharpenFilter: CIFilter = CIFilter(name: "CISharpenLuminance")!
-    
     func executeFilters() -> UIImage
     {
-        if ciBlurFilter.name != blurFilter.rawValue
+        // Color controls...
+        
+        colorControlsFilter.setValue(photo, forKey: kCIInputImageKey)
+        colorControlsFilter.setValue(-1 + brightnessSlider.valueSliderValue * 2, forKey: kCIInputBrightnessKey)
+        colorControlsFilter.setValue(saturationSlider.valueSliderValue * 2, forKey: kCIInputSaturationKey)
+        colorControlsFilter.setValue(contrastSlider.valueSliderValue * 2, forKey: kCIInputContrastKey)
+        
+        // Blur...
+        let blurEffectImageData: CIImage
+        if blurAmountSlider.valueSliderValue > 0.01
         {
-            ciBlurFilter = CIFilter(name: blurFilter.rawValue)!
+            blurFilter.setValue(colorControlsFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
+            blurFilter.setValue(blurAmountSlider.valueSliderValue * 10, forKey: "inputRadius")
+            
+            blurEffectImageData = blurFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+        }
+        else
+        {
+            blurEffectImageData = colorControlsFilter.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         
-        ciBlurFilter.setValue(CIImage(image: photo), forKey: kCIInputImageKey)
-        ciBlurFilter.setValue(blurAmountSlider.valueSliderValue * 10, forKey: "inputRadius")
-        
-        // --
-
-        colorControlsFilter.setValue(ciBlurFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
-        colorControlsFilter.setValue(brightnessSlider.valueSliderValue, forKey: kCIInputBrightnessKey)
-        colorControlsFilter.setValue(saturationSlider.valueSliderValue, forKey: kCIInputSaturationKey)
-        colorControlsFilter.setValue(contrastSlider.valueSliderValue, forKey: kCIInputContrastKey)
-        
-        // --
-        
-        if ciSharpenFilter.name != sharpenFilter.rawValue
+        // Sharpen...
+        let sharpenFilterImageData: CIImage
+        if sharpenAmountSlider.valueSliderValue > 0.01
         {
-            ciSharpenFilter = CIFilter(name: sharpenFilter.rawValue)!
+            sharpenFilter.setValue(blurEffectImageData, forKey: kCIInputImageKey)
+            
+            if sharpenFilter.name == FilterNames.CISharpenLuminance.rawValue
+            {
+                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputSharpness")
+            }
+            else if sharpenFilter.name == FilterNames.CIUnsharpMask.rawValue
+            {
+                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputIntensity")
+            }
+            
+            sharpenFilterImageData = sharpenFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+        }
+        else
+        {
+            sharpenFilterImageData = blurEffectImageData
         }
         
-        ciSharpenFilter.setValue(colorControlsFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
+        // Photo effects...
         
-        if ciSharpenFilter.name == FilterNames.CISharpenLuminance.rawValue
+        let photoEffectImageData: CIImage
+        if let ciPhotoEffectFilter = photoEffectFilter
         {
-            ciSharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputSharpness")
+            ciPhotoEffectFilter.setValue(sharpenFilterImageData, forKey: kCIInputImageKey)
+            photoEffectImageData = ciPhotoEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
         }
-        else if ciSharpenFilter.name == FilterNames.CIUnsharpMask.rawValue
+        else
         {
-            ciSharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputIntensity")
+            photoEffectImageData = sharpenFilterImageData
         }
         
-        // --
+        // Color effects...
+        let colorEffectImageData: CIImage
+        if let ciColorEffectFilter = colorEffectFilter
+        {
+            ciColorEffectFilter.setValue(photoEffectImageData, forKey: kCIInputImageKey)
+            colorEffectImageData = ciColorEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+        }
+        else
+        {
+            colorEffectImageData = photoEffectImageData
+        }
         
-        let filteredImageData = ciSharpenFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+        // Final image...
+        return UIImage(CIImage: colorEffectImageData)
         
-        let filteredImage = UIImage(CIImage: filteredImageData)
-        
-        return filteredImage
     }
     
     
@@ -168,23 +227,19 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         // --
         
         let colorEffect = FMMarkingMenuItem(label: FilterCategories.ColorEffect.rawValue, subItems:[
-            FMMarkingMenuItem(label: "None", category: FilterCategories.ColorEffect.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: "Invert", category: FilterCategories.ColorEffect.rawValue),
-            FMMarkingMenuItem(label: "Monochrome", category: FilterCategories.ColorEffect.rawValue),
-            FMMarkingMenuItem(label: "Posterize", category: FilterCategories.ColorEffect.rawValue),
-            FMMarkingMenuItem(label: "False Color", category: FilterCategories.ColorEffect.rawValue),
-            FMMarkingMenuItem(label: "Sepia Tone", category: FilterCategories.ColorEffect.rawValue)])
+            FMMarkingMenuItem(label: FilterNames.None.rawValue, category: FilterCategories.ColorEffect.rawValue, isSelected: true),
+            FMMarkingMenuItem(label: FilterNames.CIColorInvert.rawValue, category: FilterCategories.ColorEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIFalseColor.rawValue, category: FilterCategories.ColorEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIColorPosterize.rawValue, category: FilterCategories.ColorEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CISepiaTone.rawValue, category: FilterCategories.ColorEffect.rawValue)])
         
         let photoEffect = FMMarkingMenuItem(label: FilterCategories.PhotoEffect.rawValue, subItems:[
-            FMMarkingMenuItem(label: "None", category: FilterCategories.PhotoEffect.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: "Chrome", category: FilterCategories.PhotoEffect.rawValue),
-            FMMarkingMenuItem(label: "Fade", category: FilterCategories.PhotoEffect.rawValue),
-            FMMarkingMenuItem(label: "Instant", category: FilterCategories.PhotoEffect.rawValue),
-            FMMarkingMenuItem(label: "Noir", category: FilterCategories.PhotoEffect.rawValue),
-            FMMarkingMenuItem(label: "Tonal", category: FilterCategories.PhotoEffect.rawValue),
-            FMMarkingMenuItem(label: "Transfer", category: FilterCategories.PhotoEffect.rawValue)])
-
-
+            FMMarkingMenuItem(label: FilterNames.None.rawValue, category: FilterCategories.PhotoEffect.rawValue, isSelected: true),
+            FMMarkingMenuItem(label: FilterNames.CIPhotoEffectFade.rawValue, category: FilterCategories.PhotoEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIPhotoEffectInstant.rawValue, category: FilterCategories.PhotoEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIPhotoEffectNoir.rawValue, category: FilterCategories.PhotoEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIPhotoEffectTonal.rawValue, category: FilterCategories.PhotoEffect.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIPhotoEffectTransfer.rawValue, category: FilterCategories.PhotoEffect.rawValue)])
         
         let colorTransformTopLevel = FMMarkingMenuItem(label: "Color Adjust", subItems: [
             brightnessSlider,
@@ -213,7 +268,6 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
 
 enum FilterCategories: String
 {
-    case Halftone
     case PhotoEffect = "Photo Effect"
     case ColorEffect = "Color Effect"
     case Sharpen
@@ -228,6 +282,19 @@ enum FilterNames: String
     
     case CISharpenLuminance
     case CIUnsharpMask
+    
+    case None
+    
+    case CIPhotoEffectFade
+    case CIPhotoEffectInstant
+    case CIPhotoEffectNoir
+    case CIPhotoEffectTonal
+    case CIPhotoEffectTransfer
+    
+    case CIColorInvert
+    case CIColorPosterize
+    case CIFalseColor
+    case CISepiaTone
 }
 
 
