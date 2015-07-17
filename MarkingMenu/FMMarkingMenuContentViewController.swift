@@ -21,24 +21,29 @@ import UIKit
 
 class FMMarkingMenuContentViewController: UIViewController
 {
+    var origin = CGPointZero
+    var layoutMode = FMMarkingMenuLayoutMode.Circular
+    
     let tau = CGFloat(M_PI * 2)
     let pi = CGFloat(M_PI)
-
     let radius = CGFloat(100)
     let labelRadius = CGFloat(130)
     
-    var origin = CGPointZero
+    private var visualiseTouches: Bool
+    {
+        return markingMenu.visualiseTouches
+    }
     
-    let markingMenuLayer = CAShapeLayer()
-    var markingMenuItems: [FMMarkingMenuItem]!
-    var markingMenuLayers = [CAShapeLayer]()
-    var markingMenuLabels = [UILabel]()
+    private var touchVisualiser: CAShapeLayer?
     
-    var layoutMode = FMMarkingMenuLayoutMode.Circular
+    private let markingMenuLayer = CAShapeLayer()
+    private var markingMenuItems: [FMMarkingMenuItem]!
+    private var markingMenuLayers = [CAShapeLayer]()
+    private var markingMenuLabels = [UILabel]()
     
-    var drawingOffset:CGPoint = CGPointZero
+    private var drawingOffset:CGPoint = CGPointZero
     
-    var valueSliderInitialAngle: CGFloat? // if not nil, indicates we're in "value slider mode"
+    private var valueSliderInitialAngle: CGFloat? // if not nil, indicates we're in "value slider mode"
     {
         didSet
         {
@@ -60,12 +65,12 @@ class FMMarkingMenuContentViewController: UIViewController
             }
         }
     }
-    var valueSliderIndex: Int?
-    var valueSliderLabel: UILabel?
-    var valueSliderMarkingMenuLayer: CAShapeLayer?
-    var valueSliderInitialValue: CGFloat?
-    var valueSliderProgressLayer: CAShapeLayer?
-    var previousSliderValue:CGFloat?
+    private var valueSliderIndex: Int?
+    private var valueSliderLabel: UILabel?
+    private var valueSliderMarkingMenuLayer: CAShapeLayer?
+    private var valueSliderInitialValue: CGFloat?
+    private var valueSliderProgressLayer: CAShapeLayer?
+    private var previousSliderValue:CGFloat?
     
     weak var markingMenu: FMMarkingMenu!
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
@@ -94,6 +99,14 @@ class FMMarkingMenuContentViewController: UIViewController
         if markingMenuLayer.path == nil
         {
             return
+        }
+        
+        if let touchVisualiser = touchVisualiser
+        {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            touchVisualiser.frame = CGRect(origin: locationInView, size: CGSizeZero)
+            CATransaction.commit()
         }
         
         let drawPath = UIBezierPath(CGPath: markingMenuLayer.path!)
@@ -198,7 +211,7 @@ class FMMarkingMenuContentViewController: UIViewController
         }
     }
     
-    func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint)
+    private func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint)
     {
         guard let valueSliderProgressLayer = valueSliderProgressLayer,
             valueSliderInitialAngle = valueSliderInitialAngle,
@@ -251,7 +264,7 @@ class FMMarkingMenuContentViewController: UIViewController
         valueSliderProgressLayer.path = progressSubLayerPath.CGPath
     }
     
-    func displaySlider(segmentIndex: Int)
+    private func displaySlider(segmentIndex: Int)
     {
         guard let valueSliderInitialAngle = valueSliderInitialAngle else
         {
@@ -306,6 +319,29 @@ class FMMarkingMenuContentViewController: UIViewController
         {
             let originCircle = UIBezierPath(ovalInRect: CGRect(origin: CGPoint(x: origin.x - 4, y: origin.y - 4), size: CGSize(width: 8, height: 8)))
             markingMenuLayer.path = originCircle.CGPath
+            
+            if visualiseTouches
+            {
+                touchVisualiser = CAShapeLayer()
+            }
+            
+            if let touchVisualiser = touchVisualiser
+            {
+                markingMenuLayer.addSublayer(touchVisualiser)
+                
+                touchVisualiser.frame = CGRect(x: 10, y: 10, width: 50, height: 50)
+                touchVisualiser.strokeColor = UIColor(red: 0, green: 0, blue: 1, alpha: 0.5).CGColor
+                touchVisualiser.fillColor = UIColor(red: 0, green: 0, blue: 1, alpha: 0.25).CGColor
+                
+                let circle = UIBezierPath()
+                circle.addArcWithCenter(CGPoint(x: 0, y: 0), radius: 30, startAngle: 0, endAngle: tau, clockwise: true)
+                touchVisualiser.path = circle.CGPath
+                
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                touchVisualiser.frame = CGRect(origin: locationInView, size: CGSizeZero)
+                CATransaction.commit()
+            }
         }
         
         for var i = 0 ; i < markingMenuItems.count ; i++
@@ -390,6 +426,10 @@ class FMMarkingMenuContentViewController: UIViewController
         
         valueSliderProgressLayer?.path = nil
         valueSliderProgressLayer?.removeFromSuperlayer()
+        
+        touchVisualiser?.path = nil
+        touchVisualiser?.removeFromSuperlayer()
+        touchVisualiser = nil
         
         markingMenuLayers = [CAShapeLayer]()
         markingMenuLabels = [UILabel]()

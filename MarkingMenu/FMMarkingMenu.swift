@@ -22,18 +22,17 @@ import UIKit
 
 class FMMarkingMenu: NSObject
 {
-    let markingMenuContentViewController: FMMarkingMenuContentViewController
-        
     var markingMenuItems:[FMMarkingMenuItem]
+    var layoutMode = FMMarkingMenuLayoutMode.SemiCircular
+    var launchMode = FMMarkingMenuLaunchMode.OpenAtTouchLocation
+    var visualiseTouches: Bool = false
     
+    let markingMenuContentViewController: FMMarkingMenuContentViewController
     let viewController: UIViewController
     let view: UIView
     
-    var tap: FMMarkingMenuPanGestureRecognizer!
-    var previousTouchLocation = CGPointZero
-    
-    var layoutMode = FMMarkingMenuLayoutMode.SemiCircular
-    var launchMode = FMMarkingMenuLaunchMode.OpenAtTouchLocation
+    private var tap: FMMarkingMenuPanGestureRecognizer!
+    private var previousTouchLocation = CGPointZero
     
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     {

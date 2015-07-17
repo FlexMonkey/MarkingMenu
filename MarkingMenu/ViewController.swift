@@ -22,7 +22,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let contrastSlider = FMMarkingMenuItem(label: "Contrast", valueSliderValue: 0.5)
     
     let blurAmountSlider = FMMarkingMenuItem(label: "Blur Amount", valueSliderValue: 0)
-    let sharpenAmountSlider = FMMarkingMenuItem(label: "Sharpen Amount", valueSliderValue: 0.5)
+    let sharpenAmountSlider = FMMarkingMenuItem(label: "Sharpen Amount", valueSliderValue: 0)
     
     let queue = dispatch_queue_create("FilterUpdateQueue", nil)
     var busy =  false
@@ -49,11 +49,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     
     func FMMarkingMenuItemSelected(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem)
     {
-        guard let category = FilterCategories(rawValue: markingMenuItem.category!),
-            filterName = FilterNames(rawValue: markingMenuItem.label)?.rawValue else
-        {
-            return
-        }
+    guard let category = FilterCategories(rawValue: markingMenuItem.category!),
+        filterName = FilterNames(rawValue: markingMenuItem.label)?.rawValue else
+    {
+        return
+    }
         
         FMMarkingMenu.setExclusivelySelected(markingMenuItem, markingMenuItems: markingMenuItems)
         
@@ -146,8 +146,10 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         let blurEffectImageData: CIImage
         if blurAmountSlider.valueSliderValue > 0.01
         {
+            let blurMultiplier: CGFloat = blurFilter.name == FilterNames.CIGaussianBlur.rawValue ? 5 : 10
+            
             blurFilter.setValue(colorControlsFilter.valueForKey(kCIOutputImageKey), forKey: kCIInputImageKey)
-            blurFilter.setValue(blurAmountSlider.valueSliderValue * 10, forKey: "inputRadius")
+            blurFilter.setValue(blurAmountSlider.valueSliderValue * blurMultiplier, forKey: "inputRadius")
             
             blurEffectImageData = blurFilter.valueForKey(kCIOutputImageKey) as! CIImage!
         }
@@ -164,11 +166,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
             
             if sharpenFilter.name == FilterNames.CISharpenLuminance.rawValue
             {
-                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputSharpness")
+                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 20, forKey: "inputSharpness")
             }
             else if sharpenFilter.name == FilterNames.CIUnsharpMask.rawValue
             {
-                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 10, forKey: "inputIntensity")
+                sharpenFilter.setValue(sharpenAmountSlider.valueSliderValue * 20, forKey: "inputIntensity")
             }
             
             sharpenFilterImageData = sharpenFilter.valueForKey(kCIOutputImageKey) as! CIImage!
@@ -181,10 +183,10 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         // Photo effects...
         
         let photoEffectImageData: CIImage
-        if let ciPhotoEffectFilter = photoEffectFilter
+        if let photoEffectFilter = photoEffectFilter
         {
-            ciPhotoEffectFilter.setValue(sharpenFilterImageData, forKey: kCIInputImageKey)
-            photoEffectImageData = ciPhotoEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+            photoEffectFilter.setValue(sharpenFilterImageData, forKey: kCIInputImageKey)
+            photoEffectImageData = photoEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         else
         {
@@ -193,10 +195,10 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         
         // Color effects...
         let colorEffectImageData: CIImage
-        if let ciColorEffectFilter = colorEffectFilter
+        if let colorEffectFilter = colorEffectFilter
         {
-            ciColorEffectFilter.setValue(photoEffectImageData, forKey: kCIInputImageKey)
-            colorEffectImageData = ciColorEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
+            colorEffectFilter.setValue(photoEffectImageData, forKey: kCIInputImageKey)
+            colorEffectImageData = colorEffectFilter.valueForKey(kCIOutputImageKey) as! CIImage!
         }
         else
         {
@@ -211,11 +213,11 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     
     func createMarkingMenu()
     {
-        let blurTopLevel = FMMarkingMenuItem(label: FilterCategories.Blur.rawValue, subItems:[
-            FMMarkingMenuItem(label: FilterNames.CIGaussianBlur.rawValue, category: FilterCategories.Blur.rawValue, isSelected: true),
-            FMMarkingMenuItem(label: FilterNames.CIBoxBlur.rawValue, category: FilterCategories.Blur.rawValue),
-            FMMarkingMenuItem(label: FilterNames.CIDiscBlur.rawValue, category: FilterCategories.Blur.rawValue),
-            blurAmountSlider])
+    let blurTopLevel = FMMarkingMenuItem(label: FilterCategories.Blur.rawValue, subItems:[
+        FMMarkingMenuItem(label: FilterNames.CIGaussianBlur.rawValue, category: FilterCategories.Blur.rawValue, isSelected: true),
+        FMMarkingMenuItem(label: FilterNames.CIBoxBlur.rawValue, category: FilterCategories.Blur.rawValue),
+        FMMarkingMenuItem(label: FilterNames.CIDiscBlur.rawValue, category: FilterCategories.Blur.rawValue),
+        blurAmountSlider])
     
         // --
       
