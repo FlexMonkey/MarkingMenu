@@ -118,8 +118,6 @@ class FMMarkingMenuContentViewController: UIViewController
         
         let distanceToMenuOrigin = origin.distance(locationInMarkingMenu)
        
-        let sectionArc = getSectionArc()
-        
         let angle: CGFloat
         
         let segmentIndex: Int
@@ -285,19 +283,10 @@ class FMMarkingMenuContentViewController: UIViewController
         let subLayerPath = UIBezierPath()
         
         subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-        
-        // draw connecting line to label. To do: move to common code....
 
-        let sectionArc = getSectionArc()
         let labelLineAngle = (sectionArc * (CGFloat(segmentIndex) + 0.5)) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
         
-        subLayerPath.moveToPoint(CGPoint(
-            x: origin.x + cos(labelLineAngle) * radius,
-            y: origin.y + sin(labelLineAngle) * radius))
-        
-        subLayerPath.addLineToPoint(CGPoint(
-            x: origin.x + cos(labelLineAngle) * (labelRadius + 12),
-            y: origin.y + sin(labelLineAngle) * (labelRadius + 12)))
+        addLabelConnectingLineToPath(subLayerPath, angle: labelLineAngle)
         
         subLayer.path = subLayerPath.CGPath
     }
@@ -310,7 +299,6 @@ class FMMarkingMenuContentViewController: UIViewController
         
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
-        let sectionArc = getSectionArc()
         let paddingAngle = tau * 0.01
         
         valueSliderInitialAngle = nil
@@ -401,15 +389,7 @@ class FMMarkingMenuContentViewController: UIViewController
             
             subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             
-            // join arc to label
-            
-            subLayerPath.moveToPoint(CGPoint(
-                x: origin.x + cos(midAngle) * radius,
-                y: origin.y + sin(midAngle) * radius))
-            
-            subLayerPath.addLineToPoint(CGPoint(
-                x: origin.x + cos(midAngle) * (labelRadius + 12),
-                y: origin.y + sin(midAngle) * (labelRadius + 12)))
+            addLabelConnectingLineToPath(subLayerPath, angle: midAngle)
             
             subLayer.path = subLayerPath.CGPath
     
@@ -440,14 +420,6 @@ class FMMarkingMenuContentViewController: UIViewController
     
     // MARK: utilities
     
-    func getSectionArc() -> CGFloat
-    {
-        let segments = CGFloat(markingMenuItems.count)
-        let sectionArc = (tau / segments) / (layoutMode == FMMarkingMenuLayoutMode.Circular ? 1.0 : 2.0)
-        
-        return sectionArc
-    }
-    
     func removeSubComponents(indexToKeep indexToKeep: Int = -1)
     {
         for (idx, layerLabelTuple) in zip(markingMenuLayers, markingMenuLabels).enumerate() where idx != indexToKeep
@@ -460,6 +432,25 @@ class FMMarkingMenuContentViewController: UIViewController
     func labelTextForMarkingMenuItem(markingMenuItemIndex i: Int) -> String
     {
         return " " + markingMenuItems[i].label + (markingMenuItems[i].isValueSlider ? " \(Int(markingMenuItems[i].valueSliderValue * 100))% " : " ")
+    }
+    
+    var sectionArc: CGFloat
+    {
+        let segments = CGFloat(markingMenuItems.count)
+        let sectionArc = (tau / segments) / (layoutMode == FMMarkingMenuLayoutMode.Circular ? 1.0 : 2.0)
+        
+        return sectionArc
+    }
+    
+    private func addLabelConnectingLineToPath(path: UIBezierPath, angle: CGFloat)
+    {
+        path.moveToPoint(CGPoint(
+            x: origin.x + cos(angle) * radius,
+            y: origin.y + sin(angle) * radius))
+        
+        path.addLineToPoint(CGPoint(
+            x: origin.x + cos(angle) * (labelRadius + 12),
+            y: origin.y + sin(angle) * (labelRadius + 12)))
     }
     
 }
