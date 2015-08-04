@@ -94,7 +94,7 @@ class FMMarkingMenuContentViewController: UIViewController
         fatalError("init(coder:) has not been implemented")
     }
     
-    func handleMovement(locationInView: CGPoint)
+    func handleMovement(locationInView: CGPoint, targetView: UIView)
     {
         if markingMenuLayer.path == nil
         {
@@ -105,7 +105,8 @@ class FMMarkingMenuContentViewController: UIViewController
         {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            touchVisualiser.frame = CGRect(origin: locationInView, size: CGSizeZero)
+            touchVisualiser.frame = CGRect(origin: targetView.convertPoint(locationInView, toView: view), size: CGSizeZero)
+            
             CATransaction.commit()
         }
         
@@ -158,7 +159,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 normalisedValue = 1
             }
             
-            updateSliderProgressLayer(normalisedValue, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView)
+            updateSliderProgressLayer(normalisedValue, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView, targetView: targetView)
             
             previousSliderValue = normalisedValue
            
@@ -174,7 +175,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 markingMenuLabels.map(){ $0.alpha = $0.alpha * 0.15 }
                 
                 origin = locationInMarkingMenu
-                openMarkingMenu(locationInView, markingMenuItems: subItems, clearPath: false)
+                openMarkingMenu(locationInView, markingMenuItems: subItems, targetView: targetView, clearPath: false)
             }
             else if markingMenuItems[segmentIndex].isValueSlider
             {
@@ -196,7 +197,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 
                 displaySlider(segmentIndex)
                 
-                updateSliderProgressLayer(valueSliderInitialValue!, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView)
+                updateSliderProgressLayer(valueSliderInitialValue!, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView, targetView: targetView)
             }
             else
             {
@@ -209,7 +210,7 @@ class FMMarkingMenuContentViewController: UIViewController
         }
     }
     
-    private func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint)
+    private func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint, targetView: UIView)
     {
         guard let valueSliderProgressLayer = valueSliderProgressLayer,
             valueSliderInitialAngle = valueSliderInitialAngle,
@@ -228,8 +229,10 @@ class FMMarkingMenuContentViewController: UIViewController
         let labelWidth = valueSliderLabel.intrinsicContentSize().width
         let labelHeight = valueSliderLabel.intrinsicContentSize().height
         
-        valueSliderLabel.frame = CGRect(x: touchLocation.x - labelWidth / 2,
-            y: touchLocation.y - labelHeight - 40,
+        let locationInView = targetView.convertPoint(touchLocation, toView: view)
+        
+        valueSliderLabel.frame = CGRect(x: locationInView.x - labelWidth / 2,
+            y: locationInView.y - labelHeight - 40,
             width: labelWidth,
             height: labelHeight)
         valueSliderLabel.alpha = 1
@@ -291,7 +294,7 @@ class FMMarkingMenuContentViewController: UIViewController
         subLayer.path = subLayerPath.CGPath
     }
     
-    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
+    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], targetView: UIView, clearPath: Bool = true)
     {
         self.markingMenuItems = markingMenuItems
         
@@ -327,7 +330,7 @@ class FMMarkingMenuContentViewController: UIViewController
                 
                 CATransaction.begin()
                 CATransaction.setDisableActions(true)
-                touchVisualiser.frame = CGRect(origin: locationInView, size: CGSizeZero)
+                touchVisualiser.frame =  CGRect(origin: targetView.convertPoint(locationInView, toView: view), size: CGSizeZero)
                 CATransaction.commit()
             }
         }

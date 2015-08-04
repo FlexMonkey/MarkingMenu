@@ -74,6 +74,63 @@ protocol FMMarkingMenuDelegate: NSObjectProtocol
     func FMMarkingMenuValueSliderChange(markingMenu: FMMarkingMenu, markingMenuItem: FMMarkingMenuItem, newValue: CGFloat)
 }
 
+// A button like object that opens a marking menu
+class FMMarkingMenuWidget: UIView
+{
+    private let labelControl = UILabel()
+    private let touchView = UIView()
+    private let markingMenu: FMMarkingMenu
+    
+    required init(label: String, viewController: UIViewController, markingMenuItems: [FMMarkingMenuItem])
+    {
+        labelControl.text = label
+        labelControl.textAlignment = NSTextAlignment.Center
+        labelControl.textColor = UIColor.blueColor()
+        
+        touchView.layer.cornerRadius = 5
+        touchView.layer.backgroundColor = UIColor.lightGrayColor().CGColor
+        
+        markingMenu = FMMarkingMenu(viewController: viewController,
+            view: touchView,
+            markingMenuItems: markingMenuItems)
+        
+        super.init(frame: CGRectZero)
+        
+        addSubview(touchView)
+        addSubview(labelControl)
+        
+        backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.75)
+    }
+    
+    required init?(coder aDecoder: NSCoder)
+    {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    var markingMenuDelegate: FMMarkingMenuDelegate?
+    {
+        set
+        {
+            markingMenu.markingMenuDelegate = newValue
+        }
+        get
+        {
+            return markingMenu.markingMenuDelegate
+        }
+    }
+    
+    override func layoutSubviews()
+    {
+        touchView.frame = bounds.rectByInsetting(dx: 20, dy: 20)
+        labelControl.frame = bounds
+    }
+    
+    override func intrinsicContentSize() -> CGSize
+    {
+        return CGSize(width: 100, height: 75)
+    }
+}
+
 // An extended UIPanGestureRecognizer that fires UIGestureRecognizerState.Began
 // with the first touch down, i.e. without requiring any movement.
 class FMMarkingMenuPanGestureRecognizer: UIPanGestureRecognizer

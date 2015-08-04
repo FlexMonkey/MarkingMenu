@@ -14,6 +14,7 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     let imageView = UIImageView()
     var markingMenu: FMMarkingMenu!
 
+    let toolbarGroup = UIStackView()
     
     var markingMenuItems: [FMMarkingMenuItem]!
     
@@ -43,6 +44,10 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
 
         view.addSubview(imageView)
+        view.addSubview(toolbarGroup)
+        
+        toolbarGroup.axis = UILayoutConstraintAxis.Horizontal
+        toolbarGroup.distribution = UIStackViewDistribution.FillEqually
         
         updateFilters()
     }
@@ -206,18 +211,18 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
         }
         
         // Final image...
-        return UIImage(CIImage: colorEffectImageData)
+        return UIImage(CIImage: colorEffectImageData) ; // photo! |  colorEffectImageData
         
     }
     
     
     func createMarkingMenu()
     {
-    let blurTopLevel = FMMarkingMenuItem(label: FilterCategories.Blur.rawValue, subItems:[
-        FMMarkingMenuItem(label: FilterNames.CIGaussianBlur.rawValue, category: FilterCategories.Blur.rawValue, isSelected: true),
-        FMMarkingMenuItem(label: FilterNames.CIBoxBlur.rawValue, category: FilterCategories.Blur.rawValue),
-        FMMarkingMenuItem(label: FilterNames.CIDiscBlur.rawValue, category: FilterCategories.Blur.rawValue),
-        blurAmountSlider])
+        let blurTopLevel = FMMarkingMenuItem(label: FilterCategories.Blur.rawValue, subItems:[
+            FMMarkingMenuItem(label: FilterNames.CIGaussianBlur.rawValue, category: FilterCategories.Blur.rawValue, isSelected: true),
+            FMMarkingMenuItem(label: FilterNames.CIBoxBlur.rawValue, category: FilterCategories.Blur.rawValue),
+            FMMarkingMenuItem(label: FilterNames.CIDiscBlur.rawValue, category: FilterCategories.Blur.rawValue),
+            blurAmountSlider])
     
         // --
       
@@ -254,16 +259,43 @@ class ViewController: UIViewController, FMMarkingMenuDelegate
     
         markingMenuItems = [blurTopLevel, sharpenTopLevel, colorTransformTopLevel]
         
-        markingMenu = FMMarkingMenu(viewController: self, view: view, markingMenuItems: markingMenuItems)
+        markingMenu = FMMarkingMenu(viewController: self, view: imageView, markingMenuItems: markingMenuItems)
         
         markingMenu.markingMenuDelegate = self
+        
+        // --
+        
+        let colorAdjustWidget = FMMarkingMenuWidget(label: "Color Adjust",
+            viewController: self,
+            markingMenuItems: [brightnessSlider, saturationSlider, contrastSlider])
+        
+        colorAdjustWidget.markingMenuDelegate = self
+        toolbarGroup.addArrangedSubview(colorAdjustWidget)
+        
+        let photoEffectWidget = FMMarkingMenuWidget(label: "Photo Effects",
+            viewController: self,
+            markingMenuItems: photoEffect.subItems!)
+        
+        photoEffectWidget.markingMenuDelegate = self
+        toolbarGroup.addArrangedSubview(photoEffectWidget)
+        
+        let colorEffectWidget = FMMarkingMenuWidget(label: "Color Effects",
+            viewController: self,
+            markingMenuItems: colorEffect.subItems!)
+        
+        colorEffectWidget.markingMenuDelegate = self
+        toolbarGroup.addArrangedSubview(colorEffectWidget)
     }
     
     override func viewDidLayoutSubviews()
     {
         super.viewDidLayoutSubviews()
         
-        imageView.frame = view.bounds.rectByInsetting(dx: 30, dy: 30)
+        let topMargin = topLayoutGuide.length
+        
+        imageView.frame = CGRect(x: 0, y: topMargin, width: view.frame.width, height: view.frame.height - topMargin)
+        
+        toolbarGroup.frame = CGRect(x: 0, y: view.frame.height - 75, width: view.frame.width, height: 75)
     }
     
 }

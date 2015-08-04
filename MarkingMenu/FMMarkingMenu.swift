@@ -75,7 +75,7 @@ class FMMarkingMenu: NSObject
         }
         else if recognizer.state == UIGestureRecognizerState.Changed
         {
-            markingMenuContentViewController.handleMovement(recognizer.locationInView(view))
+            markingMenuContentViewController.handleMovement(recognizer.locationInView(view), targetView: view)
         }
         else
         {
@@ -108,11 +108,11 @@ class FMMarkingMenu: NSObject
             }
             else
             {
-                markingMenuOrigin = locationInView
+                markingMenuOrigin = self.view.convertPoint(locationInView, toView: self.viewController.view)
             }
             
             self.markingMenuContentViewController.origin = markingMenuOrigin
-            self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems)
+            self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems, targetView: self.view)
         }
     }
     
