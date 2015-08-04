@@ -90,6 +90,8 @@ class FMMarkingMenuWidget: UIView
         touchView.layer.cornerRadius = 5
         touchView.layer.backgroundColor = UIColor.lightGrayColor().CGColor
         
+        applyDefaultMarkingMenuShadowToLayer(touchView.layer)
+        
         markingMenu = FMMarkingMenu(viewController: viewController,
             view: touchView,
             markingMenuItems: markingMenuItems)
