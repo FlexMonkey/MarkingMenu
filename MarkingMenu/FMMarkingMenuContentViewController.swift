@@ -171,8 +171,8 @@ class FMMarkingMenuContentViewController: UIViewController
             {
                 // open sub menu...
                 
-                markingMenuLayers.map({ $0.opacity = $0.opacity * 0.15 })
-                markingMenuLabels.map(){ $0.alpha = $0.alpha * 0.15 }
+                markingMenuLayers.forEach({ $0.opacity = $0.opacity * 0.15 })
+                markingMenuLabels.forEach(){ $0.alpha = $0.alpha * 0.15 }
                 
                 origin = locationInMarkingMenu
                 openMarkingMenu(locationInView, markingMenuItems: subItems, targetView: targetView, clearPath: false)

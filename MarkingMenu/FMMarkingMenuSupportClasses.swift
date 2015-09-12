@@ -123,7 +123,7 @@ class FMMarkingMenuWidget: UIView
     
     override func layoutSubviews()
     {
-        touchView.frame = bounds.rectByInsetting(dx: 20, dy: 20)
+        touchView.frame = bounds.insetBy(dx: 20, dy: 20)
         labelControl.frame = bounds
     }
     

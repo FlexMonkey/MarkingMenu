@@ -143,7 +143,7 @@ class FMMarkingMenu: NSObject
             
             if let subItems = item.subItems
             {
-                returnArray.extend(FMMarkingMenu.getMenuItemsByCategory(category, markingMenuItems: subItems))
+                returnArray.appendContentsOf(FMMarkingMenu.getMenuItemsByCategory(category, markingMenuItems: subItems))
             }
         }
         
