@@ -22,15 +22,17 @@ import UIKit
 
 class FMMarkingMenu: NSObject
 {
-    let markingMenuContentViewController: FMMarkingMenuContentViewController
-        
-    let markingMenuItems:[FMMarkingMenuItem]
+    var markingMenuItems:[FMMarkingMenuItem]
+    var layoutMode = FMMarkingMenuLayoutMode.SemiCircular
+    var launchMode = FMMarkingMenuLaunchMode.OpenAtTouchLocation
+    var visualiseTouches: Bool = false
     
+    let markingMenuContentViewController: FMMarkingMenuContentViewController
     let viewController: UIViewController
     let view: UIView
     
-    var tap: FMMarkingMenuPanGestureRecognizer!
-    var previousTouchLocation = CGPointZero
+    private var tap: FMMarkingMenuPanGestureRecognizer!
+    private var previousTouchLocation = CGPointZero
     
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     {
@@ -44,8 +46,7 @@ class FMMarkingMenu: NSObject
     {
         self.markingMenuItems = markingMenuItems
      
-        let markingMenuOrigin = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
-        markingMenuContentViewController = FMMarkingMenuContentViewController(origin: markingMenuOrigin)
+        markingMenuContentViewController = FMMarkingMenuContentViewController()
         
         self.viewController = viewController
         self.view = view
@@ -55,7 +56,8 @@ class FMMarkingMenu: NSObject
         
         markingMenuContentViewController.markingMenu = self
         
-        tap = FMMarkingMenuPanGestureRecognizer(target: self, action: "tapHandler:")
+        tap = FMMarkingMenuPanGestureRecognizer(target: self, action: "tapHandler:", markingMenu: self)
+
         view.addGestureRecognizer(tap)
     }
     
@@ -68,11 +70,12 @@ class FMMarkingMenu: NSObject
     {
         if recognizer.state == UIGestureRecognizerState.Began
         {
-            open(recognizer.locationInView(view))
+            // nothing to do here, FMMarkingMenuPanGestureRecognizer
+            // invokes open() on touchesBegan
         }
         else if recognizer.state == UIGestureRecognizerState.Changed
         {
-            markingMenuContentViewController.handleMovement(recognizer.locationInView(view))
+            markingMenuContentViewController.handleMovement(recognizer.locationInView(view), targetView: view)
         }
         else
         {
@@ -86,19 +89,65 @@ class FMMarkingMenu: NSObject
         viewController.dismissViewControllerAnimated(false, completion: nil)
     }
     
-    private func open(locationInView: CGPoint)
-    {
+    func open(locationInView: CGPoint)
+    {        
         markingMenuContentViewController.modalPresentationStyle = UIModalPresentationStyle.OverCurrentContext
         markingMenuContentViewController.modalTransitionStyle = UIModalTransitionStyle.CrossDissolve
         
         markingMenuContentViewController.view.frame = view.bounds
         
+        markingMenuContentViewController.layoutMode = layoutMode
+        
         viewController.presentViewController(markingMenuContentViewController, animated: false)
         {
-            let markingMenuOrigin = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+            let markingMenuOrigin: CGPoint
+            
+            if self.launchMode == .OpenAtScreenCentre
+            {
+                markingMenuOrigin = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+            }
+            else
+            {
+                markingMenuOrigin = self.view.convertPoint(locationInView, toView: self.viewController.view)
+            }
+            
             self.markingMenuContentViewController.origin = markingMenuOrigin
-            self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems)
+            self.markingMenuContentViewController.openMarkingMenu(locationInView, markingMenuItems: self.markingMenuItems, targetView: self.view)
         }
+    }
+    
+    // MARK: Utilities...
+    
+    static func setExclusivelySelected(markingMenuItem: FMMarkingMenuItem, markingMenuItems: [FMMarkingMenuItem])
+    {
+        let items = getMenuItemsByCategory(markingMenuItem.category!, markingMenuItems: markingMenuItems)
+        
+        for item in items where item !== markingMenuItem
+        {
+            item.isSelected = false
+        }
+        
+        markingMenuItem.isSelected = true
+    }
+    
+    static func getMenuItemsByCategory(category:String, markingMenuItems: [FMMarkingMenuItem]) -> [FMMarkingMenuItem]
+    {
+        var returnArray = [FMMarkingMenuItem]()
+        
+        for item in markingMenuItems
+        {
+            if item.category == category
+            {
+                returnArray.append(item)
+            }
+            
+            if let subItems = item.subItems
+            {
+                returnArray.appendContentsOf(FMMarkingMenu.getMenuItemsByCategory(category, markingMenuItems: subItems))
+            }
+        }
+        
+        return returnArray
     }
 }
 

@@ -21,43 +21,72 @@ import UIKit
 
 class FMMarkingMenuContentViewController: UIViewController
 {
+    var origin = CGPointZero
+    var layoutMode = FMMarkingMenuLayoutMode.Circular
+    
     let tau = CGFloat(M_PI * 2)
     let pi = CGFloat(M_PI)
-
     let radius = CGFloat(100)
     let labelRadius = CGFloat(130)
     
-    var origin: CGPoint
+    private var visualiseTouches: Bool
+    {
+        return markingMenu.visualiseTouches
+    }
     
-    let markingMenuLayer = CAShapeLayer()
-    var markingMenuItems: [FMMarkingMenuItem]!
-    var markingMenuLayers = [CAShapeLayer]()
-    var markingMenuLabels = [UILabel]()
+    private var touchVisualiser: CAShapeLayer?
     
-    var drawingOffset:CGPoint = CGPointZero
+    private let markingMenuLayer = CAShapeLayer()
+    private var markingMenuItems: [FMMarkingMenuItem]!
+    private var markingMenuLayers = [CAShapeLayer]()
+    private var markingMenuLabels = [UILabel]()
     
-    let selectionLabel = UILabel()
+    private var drawingOffset:CGPoint = CGPointZero
+    
+    private var valueSliderInitialAngle: CGFloat? // if not nil, indicates we're in "value slider mode"
+    {
+        didSet
+        {
+            if valueSliderInitialAngle == nil
+            {
+                valueSliderProgressLayer?.removeFromSuperlayer()
+                valueSliderProgressLayer = nil
+                valueSliderInitialValue = nil
+                previousSliderValue = nil
+            }
+            else
+            {
+                valueSliderProgressLayer = CAShapeLayer()
+                markingMenuLayer.addSublayer(valueSliderProgressLayer!)
+                
+                valueSliderProgressLayer?.fillColor = nil
+                valueSliderProgressLayer?.lineJoin = kCALineJoinRound
+                valueSliderProgressLayer?.lineCap = kCALineCapRound
+            }
+        }
+    }
+    private var valueSliderIndex: Int?
+    private var valueSliderLabel: UILabel?
+    private var valueSliderMarkingMenuLayer: CAShapeLayer?
+    private var valueSliderInitialValue: CGFloat?
+    private var valueSliderProgressLayer: CAShapeLayer?
+    private var previousSliderValue:CGFloat?
     
     weak var markingMenu: FMMarkingMenu!
     weak var markingMenuDelegate: FMMarkingMenuDelegate?
     
-    required init(origin: CGPoint)
+    required init()
     {
-        self.origin = origin
-        
         super.init(nibName: nil, bundle: nil)
         
         view.layer.addSublayer(markingMenuLayer)
         markingMenuLayer.frame = view.bounds
         
-        selectionLabel.layer.backgroundColor = UIColor.lightGrayColor().CGColor
-        selectionLabel.layer.cornerRadius = 4
-        view.addSubview(selectionLabel)
-        
-        view.layer.shadowColor = UIColor.blackColor().CGColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 0)
-        view.layer.shadowOpacity = 1
-        view.layer.shadowRadius = 2
+        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
+        markingMenuLayer.fillColor = nil
+        markingMenuLayer.lineWidth = 5
+        markingMenuLayer.lineJoin = kCALineJoinRound
+        markingMenuLayer.lineCap = kCALineCapRound
     }
 
     required init(coder aDecoder: NSCoder)
@@ -65,14 +94,23 @@ class FMMarkingMenuContentViewController: UIViewController
         fatalError("init(coder:) has not been implemented")
     }
     
-    func handleMovement(locationInView: CGPoint)
+    func handleMovement(locationInView: CGPoint, targetView: UIView)
     {
         if markingMenuLayer.path == nil
         {
             return
         }
         
-        let drawPath = UIBezierPath(CGPath: markingMenuLayer.path)
+        if let touchVisualiser = touchVisualiser
+        {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            touchVisualiser.frame = CGRect(origin: targetView.convertPoint(locationInView, toView: view), size: CGSizeZero)
+            
+            CATransaction.commit()
+        }
+        
+        let drawPath = UIBezierPath(CGPath: markingMenuLayer.path!)
         let locationInMarkingMenu = CGPoint(x: locationInView.x + drawingOffset.x, y: locationInView.y + drawingOffset.y)
         
         drawPath.addLineToPoint(locationInMarkingMenu)
@@ -81,66 +119,226 @@ class FMMarkingMenuContentViewController: UIViewController
         
         let distanceToMenuOrigin = origin.distance(locationInMarkingMenu)
        
-        let sectionArc = tau / CGFloat(markingMenuItems.count)
+        let angle: CGFloat
         
-        let angle = tau - (((pi * 1.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+        let segmentIndex: Int
         
-        let segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
-        
-        if CGFloat(distanceToMenuOrigin) > radius
+        if layoutMode == FMMarkingMenuLayoutMode.Circular
         {
-            selectionLabel.text = selectionLabel.text! + (selectionLabel.text!.isEmpty ? " " : " → ") + markingMenuItems[segmentIndex].label + " "
-            selectionLabel.frame = CGRect(x: view.frame.width / 2 - selectionLabel.intrinsicContentSize().width / 2, y: 40, width: selectionLabel.intrinsicContentSize().width, height: selectionLabel.intrinsicContentSize().height)
+            angle = tau - (((pi * 1.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+            segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
+        }
+        else
+        {
+            angle = 0 - (((pi * 0.5) + atan2(locationInMarkingMenu.x - origin.x, locationInMarkingMenu.y - origin.y)) )
+            segmentIndex = Int((angle < 0 ? tau + angle : angle) / sectionArc )
+        }
+        
+        if let valueSliderInitialAngle = valueSliderInitialAngle // value slider open....
+        {
+            let diff: CGFloat
             
-            if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0
+            if layoutMode == FMMarkingMenuLayoutMode.Circular
             {
-                markingMenuLayers.map({ $0.opacity = $0.opacity * 0.15 })
-                markingMenuLabels.map(){ $0.alpha = $0.alpha * 0.15 }
-                
-                origin = locationInMarkingMenu
-                openMarkingMenu(locationInView, markingMenuItems: subItems, clearPath: false)
+                diff = (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
             }
             else
             {
+                diff = (angle - valueSliderInitialAngle) < -pi
+                    ? (angle - valueSliderInitialAngle) + tau
+                    : (angle - valueSliderInitialAngle) < pi ? (angle - valueSliderInitialAngle) : (angle - valueSliderInitialAngle - tau)
+            }
+            
+            var normalisedValue = min(max(0, valueSliderInitialValue! + (diff / pi)), 1)
+            if previousSliderValue < 0.1 && normalisedValue == 1
+            {
+                normalisedValue = 0
+            }
+            else if previousSliderValue > 0.9 && normalisedValue == 0
+            {
+                normalisedValue = 1
+            }
+            
+            updateSliderProgressLayer(normalisedValue, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView, targetView: targetView)
+            
+            previousSliderValue = normalisedValue
+           
+            markingMenuDelegate?.FMMarkingMenuValueSliderChange(markingMenu!, markingMenuItem: markingMenuItems[valueSliderIndex!], newValue: normalisedValue)
+        }
+        else if CGFloat(distanceToMenuOrigin) > radius && segmentIndex < markingMenuItems.count
+        {
+            if let subItems = markingMenuItems[segmentIndex].subItems where subItems.count > 0 && valueSliderInitialAngle == nil
+            {
+                // open sub menu...
+                
+                markingMenuLayers.forEach({ $0.opacity = $0.opacity * 0.15 })
+                markingMenuLabels.forEach(){ $0.alpha = $0.alpha * 0.15 }
+                
+                origin = locationInMarkingMenu
+                openMarkingMenu(locationInView, markingMenuItems: subItems, targetView: targetView, clearPath: false)
+            }
+            else if markingMenuItems[segmentIndex].isValueSlider
+            {
+                // enter slider mode...
+                
+                removeSubComponents(indexToKeep: segmentIndex)
+                
+                view.layer.shadowColor = nil
+                view.layer.shadowOpacity = 0
+                
+                valueSliderLabel = markingMenuLabels[segmentIndex]
+                valueSliderMarkingMenuLayer = markingMenuLayers[segmentIndex]
+                valueSliderInitialValue = markingMenuItems[segmentIndex].valueSliderValue
+                previousSliderValue = valueSliderInitialValue
+                valueSliderInitialAngle = angle
+                
+                applyDefaultMarkingMenuShadowToLayer(valueSliderLabel!.layer)
+                applyDefaultMarkingMenuShadowToLayer(valueSliderMarkingMenuLayer!)
+                
+                displaySlider(segmentIndex)
+                
+                updateSliderProgressLayer(valueSliderInitialValue!, distanceToMenuOrigin: CGFloat(distanceToMenuOrigin), touchLocation: locationInView, targetView: targetView)
+            }
+            else
+            {
+                // execute sub menu item...
+                
                 markingMenuDelegate?.FMMarkingMenuItemSelected(markingMenu!, markingMenuItem: markingMenuItems[segmentIndex])
                 
-                closeMarkingMenu()
-                
-                UIView.animateWithDuration(0.75, animations: {self.selectionLabel.alpha = 0}, completion: {_ in self.markingMenu.close()})
+                markingMenu.close()
             }
         }
     }
     
-    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], clearPath: Bool = true)
+    private func updateSliderProgressLayer(normalisedValue: CGFloat, distanceToMenuOrigin: CGFloat, touchLocation: CGPoint, targetView: UIView)
+    {
+        guard let valueSliderProgressLayer = valueSliderProgressLayer,
+            valueSliderInitialAngle = valueSliderInitialAngle,
+            valueSliderMarkingMenuLayer = valueSliderMarkingMenuLayer,
+            valueSliderIndex = valueSliderIndex,
+            valueSliderLabel = valueSliderLabel else
+        {
+            return
+        }
+
+        // position label above touch location
+        
+        markingMenuItems[valueSliderIndex].valueSliderValue = normalisedValue
+        valueSliderLabel.text = labelTextForMarkingMenuItem(markingMenuItemIndex: valueSliderIndex)
+        
+        let labelWidth = valueSliderLabel.intrinsicContentSize().width
+        let labelHeight = valueSliderLabel.intrinsicContentSize().height
+        
+        let locationInView = targetView.convertPoint(touchLocation, toView: view)
+        
+        valueSliderLabel.frame = CGRect(x: locationInView.x - labelWidth / 2,
+            y: locationInView.y - labelHeight - 40,
+            width: labelWidth,
+            height: labelHeight)
+        valueSliderLabel.alpha = 1
+        
+        let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
+        let startAngle = tweakedValueSliderInitialAngle - (pi / 2)  + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        
+        // redraw valueSliderMarkingMenuLayer...
+        let endAngle = tweakedValueSliderInitialAngle + (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        
+        let subLayerPath = UIBezierPath()
+        
+        subLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+
+        valueSliderMarkingMenuLayer.lineDashPattern = nil
+        valueSliderMarkingMenuLayer.path = subLayerPath.CGPath
+        valueSliderMarkingMenuLayer.opacity = 1
+        
+        // draw progress bar...
+        let progressEndAngle = startAngle + (pi * normalisedValue)
+        
+        valueSliderProgressLayer.lineWidth = 6
+        valueSliderProgressLayer.lineDashPattern = [4, 8]
+        valueSliderProgressLayer.strokeColor = UIColor.blueColor().CGColor
+        
+        let progressSubLayerPath = UIBezierPath()
+        
+        progressSubLayerPath.addArcWithCenter(origin, radius: distanceToMenuOrigin, startAngle: startAngle, endAngle: progressEndAngle, clockwise: true)
+        
+        valueSliderProgressLayer.path = progressSubLayerPath.CGPath
+    }
+    
+    private func displaySlider(segmentIndex: Int)
+    {
+        guard let valueSliderInitialAngle = valueSliderInitialAngle else
+        {
+            return
+        }
+
+        valueSliderIndex = segmentIndex
+        
+        let subLayer = markingMenuLayers[segmentIndex]
+        
+        let tweakedValueSliderInitialAngle = valueSliderInitialAngle + (0.5 - valueSliderInitialValue!) * pi
+        let startAngle = tweakedValueSliderInitialAngle - (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        let endAngle = tweakedValueSliderInitialAngle + (pi / 2) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        
+        subLayer.lineWidth = 8
+        subLayer.lineDashPattern = [4, 8]
+        
+        let subLayerPath = UIBezierPath()
+        
+        subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+
+        let labelLineAngle = (sectionArc * (CGFloat(segmentIndex) + 0.5)) + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+        
+        addLabelConnectingLineToPath(subLayerPath, angle: labelLineAngle)
+        
+        subLayer.path = subLayerPath.CGPath
+    }
+    
+    func openMarkingMenu(locationInView: CGPoint, markingMenuItems: [FMMarkingMenuItem], targetView: UIView, clearPath: Bool = true)
     {
         self.markingMenuItems = markingMenuItems
         
+        applyDefaultMarkingMenuShadowToLayer(view.layer)
+        
         drawingOffset = CGPoint(x: origin.x - locationInView.x, y: origin.y - locationInView.y)
         
-        let segments = CGFloat(markingMenuItems.count)
-        let sectionArc = (tau / segments)
         let paddingAngle = tau * 0.01
         
-        markingMenuLayer.strokeColor = UIColor.whiteColor().CGColor
-        markingMenuLayer.fillColor = nil
-        markingMenuLayer.lineWidth = 5
-        markingMenuLayer.lineJoin = kCALineJoinRound
-        markingMenuLayer.lineCap = kCALineCapRound
+        valueSliderInitialAngle = nil
         
         if clearPath
         {
-            selectionLabel.text = ""
-            selectionLabel.frame = CGRectZero
-            selectionLabel.alpha = 1
-            
             let originCircle = UIBezierPath(ovalInRect: CGRect(origin: CGPoint(x: origin.x - 4, y: origin.y - 4), size: CGSize(width: 8, height: 8)))
             markingMenuLayer.path = originCircle.CGPath
+            
+            if visualiseTouches
+            {
+                touchVisualiser = CAShapeLayer()
+            }
+            
+            if let touchVisualiser = touchVisualiser
+            {
+                markingMenuLayer.addSublayer(touchVisualiser)
+                
+                touchVisualiser.frame = CGRect(x: 10, y: 10, width: 50, height: 50)
+                touchVisualiser.strokeColor = UIColor(red: 0, green: 0, blue: 1, alpha: 0.5).CGColor
+                touchVisualiser.fillColor = UIColor(red: 0, green: 0, blue: 1, alpha: 0.25).CGColor
+                
+                let circle = UIBezierPath()
+                circle.addArcWithCenter(CGPoint(x: 0, y: 0), radius: 30, startAngle: 0, endAngle: tau, clockwise: true)
+                touchVisualiser.path = circle.CGPath
+                
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                touchVisualiser.frame =  CGRect(origin: targetView.convertPoint(locationInView, toView: view), size: CGSizeZero)
+                CATransaction.commit()
+            }
         }
         
         for var i = 0 ; i < markingMenuItems.count ; i++
         {
-            let startAngle = (sectionArc * CGFloat(i)) + paddingAngle
-            let endAngle = (sectionArc * CGFloat(i + 1)) - paddingAngle
+            let startAngle = (sectionArc * CGFloat(i)) + paddingAngle + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
+            let endAngle = (sectionArc * CGFloat(i + 1)) - paddingAngle + (layoutMode == FMMarkingMenuLayoutMode.Circular ? 0 : pi)
             
             let subLayer = CAShapeLayer()
             let subLayerPath = UIBezierPath()
@@ -154,6 +352,11 @@ class FMMarkingMenuContentViewController: UIViewController
                 subLayer.lineWidth = 4
                 subLayer.lineDashPattern = [1, 4]
             }
+            else if (markingMenuItems[i].isValueSlider)
+            {
+                subLayer.lineWidth = 8
+                subLayer.lineDashPattern = [4, 8]
+            }
             else
             {
                 subLayer.lineWidth = 8
@@ -164,7 +367,8 @@ class FMMarkingMenuContentViewController: UIViewController
             let midAngle = (startAngle + endAngle) / 2
             
             let label = UILabel()
-            label.text = " " + markingMenuItems[i].label + " "
+            label.text = labelTextForMarkingMenuItem(markingMenuItemIndex: i)
+            label.textColor = markingMenuItems[i].isSelected ? UIColor.redColor() : UIColor.blueColor()
             
             markingMenuLabels.append(label)
             
@@ -188,15 +392,7 @@ class FMMarkingMenuContentViewController: UIViewController
             
             subLayerPath.addArcWithCenter(origin, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             
-            // join arc to label
-            
-            subLayerPath.moveToPoint(CGPoint(
-                x: origin.x + cos(midAngle) * radius,
-                y: origin.y + sin(midAngle) * radius))
-            
-            subLayerPath.addLineToPoint(CGPoint(
-                x: origin.x + cos(midAngle) * (labelRadius + 12),
-                y: origin.y + sin(midAngle) * (labelRadius + 12)))
+            addLabelConnectingLineToPath(subLayerPath, angle: midAngle)
             
             subLayer.path = subLayerPath.CGPath
     
@@ -209,14 +405,57 @@ class FMMarkingMenuContentViewController: UIViewController
     
     func closeMarkingMenu()
     {
-        markingMenuLayers.map({ $0.removeFromSuperlayer() })
-        markingMenuLabels.map({ $0.removeFromSuperview() })
+        removeSubComponents()
+        
+        valueSliderProgressLayer?.path = nil
+        valueSliderProgressLayer?.removeFromSuperlayer()
+        
+        touchVisualiser?.path = nil
+        touchVisualiser?.removeFromSuperlayer()
+        touchVisualiser = nil
         
         markingMenuLayers = [CAShapeLayer]()
         markingMenuLabels = [UILabel]()
         
         markingMenuLayer.path = nil
+        valueSliderMarkingMenuLayer = nil
     }
+    
+    // MARK: utilities
+    
+    func removeSubComponents(indexToKeep indexToKeep: Int = -1)
+    {
+        for (idx, layerLabelTuple) in zip(markingMenuLayers, markingMenuLabels).enumerate() where idx != indexToKeep
+        {
+            layerLabelTuple.0.removeFromSuperlayer()
+            layerLabelTuple.1.removeFromSuperview()
+        }
+    }
+    
+    func labelTextForMarkingMenuItem(markingMenuItemIndex i: Int) -> String
+    {
+        return " " + markingMenuItems[i].label + (markingMenuItems[i].isValueSlider ? " \(Int(markingMenuItems[i].valueSliderValue * 100))% " : " ")
+    }
+    
+    var sectionArc: CGFloat
+    {
+        let segments = CGFloat(markingMenuItems.count)
+        let sectionArc = (tau / segments) / (layoutMode == FMMarkingMenuLayoutMode.Circular ? 1.0 : 2.0)
+        
+        return sectionArc
+    }
+    
+    private func addLabelConnectingLineToPath(path: UIBezierPath, angle: CGFloat)
+    {
+        path.moveToPoint(CGPoint(
+            x: origin.x + cos(angle) * radius,
+            y: origin.y + sin(angle) * radius))
+        
+        path.addLineToPoint(CGPoint(
+            x: origin.x + cos(angle) * (labelRadius + 12),
+            y: origin.y + sin(angle) * (labelRadius + 12)))
+    }
+    
 }
 
 
